@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  labelmaker:
+    build:
+      context: .
+      dockerfile: Dockerfile.labelmaker
+    image: labelmaker:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/labelmaker/data
+    env_file:
+      - .env
+    environment:
+      - PORT=5000
+      - DEBUG=false
+    networks:
+      - internal
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  internal:
+    driver: bridge

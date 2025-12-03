@@ -10,21 +10,21 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY volumes/webshare/requirements.txt .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY volumes/labelmaker/ .
+COPY . /app
 
 # Create user with host user's UID/GID for proper file permissions
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-RUN groupadd -g ${GROUP_ID} webshare || true
+RUN groupadd -g ${GROUP_ID} labelmaker || true
 RUN useradd -u ${USER_ID} -g ${GROUP_ID} --create-home --shell /bin/bash labelmaker || true
 RUN chown -R labelmaker:labelmaker /app
-USER webshare
+USER labelmaker
 
 # Expose port
 EXPOSE 5000

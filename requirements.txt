@@ -1,0 +1,23 @@
+# Web framework
+Flask>=2.2,<3
+
+# Database / ORM for SQLite
+Flask-SQLAlchemy>=3.0,<4
+
+# Local development env vars
+python-dotenv>=0.21
+
+# Image handling for label composition
+Pillow>=9.0
+
+# Barcode generation (no QR codes)
+python-barcode>=0.14
+
+# PDF generation for printable labels
+reportlab>=4.0
+
+# WSGI server for production / Docker
+gunicorn>=20.1
+
+# Testing (dev)
+pytest>=7.0
