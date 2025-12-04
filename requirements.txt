@@ -21,3 +21,6 @@ gunicorn>=20.1
 
 # Testing (dev)
 pytest>=7.0
+
+# Live reload for development
+flask-livereload>=0.2

@@ -1,2 +1,14 @@
 /idea
 /venv
+__pycache__/
+instance/
+database/.db
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.DS_Store
+.env
+*.log
+*.sqlite
+*.db

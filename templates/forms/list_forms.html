@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Správa Forem - LabelMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Správa lékových forem</h1>
+            <a href="/" class="btn-back">← Zpět na domovskou stránku</a>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-primary" onclick="openCreateModal()">
+                ➕ Vytvořit novou formu
+            </button>
+        </div>
+
+        <div class="forms-table-container">
+            <table class="forms-table">
+                <thead>
+                    <tr>
+                        <th>Název formy</th>
+                        <th>Zkratka</th>
+                        <th>Jednotka</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+                <tbody id="formsTableBody">
+                    <!-- Forms will be loaded here via JavaScript -->
+                    <tr class="loading-row">
+                        <td colspan="4">Načítám data...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <p>Zatím nemáte žádné formy.</p>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    Vytvořit první formu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Vytvořit novou formu</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="formForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="formName">Název formy *</label>
+                    <input type="text" id="formName" name="name" required placeholder="např. Kapsle">
+                </div>
+
+                <div class="form-group">
+                    <label for="formShortName">Zkratka *</label>
+                    <input type="text" id="formShortName" name="short_name" required placeholder="např. cps">
+                </div>
+
+                <div class="form-group">
+                    <label for="formUnit">Jednotka *</label>
+                    <input type="text" id="formUnit" name="unit" required placeholder="např. ks">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        Zrušit
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        Vytvořit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Potvrdit smazání</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Opravdu chcete smazat lékovou formu "<span id="deleteFormName"></span>"?</p>
+                <p class="warning-text">⚠️ Tato akce je nevratná!</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    Zrušit
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    Smazat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/forms.js') }}"></script>
+</body>
+
+</html>
