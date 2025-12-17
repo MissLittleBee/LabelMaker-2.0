@@ -1,0 +1,111 @@
+/* Labels-specific styles */
+
+.filters {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.filter-select {
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Print checkbox in table */
+.print-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.print-cell {
+    text-align: center;
+}
+
+.print-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.print-badge.marked {
+    background: #28a745;
+    color: white;
+}
+
+.print-badge.unmarked {
+    background: #e0e0e0;
+    color: #666;
+}
+
+/* Editable row highlight */
+tr.editing {
+    background: #fff3cd !important;
+}
+
+/* Action buttons in table */
+.btn-icon {
+    padding: 6px 10px;
+    font-size: 0.9em;
+    margin-right: 3px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon.btn-toggle {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-icon.btn-toggle:hover {
+    background: #138496;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+
+    .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .forms-table {
+        font-size: 0.85em;
+    }
+
+    .btn-icon {
+        padding: 4px 8px;
+        font-size: 0.8em;
+    }
+}

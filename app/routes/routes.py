@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, render_template
 
 # Create Blueprint
-bp = Blueprint("labels", __name__)
+bp = Blueprint("main", __name__)
 
 
 # Routes

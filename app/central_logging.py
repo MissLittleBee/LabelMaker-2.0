@@ -6,9 +6,9 @@ from pathlib import Path
 def setup_logging(app):
     """Configure logging for the application."""
 
-    # Create logs directory
+    # Create logs directory (with parent directories)
     log_dir = Path(app.instance_path) / "logs"
-    log_dir.mkdir(exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Log level from config or environment
     log_level = getattr(app.config, "LOG_LEVEL", "INFO")

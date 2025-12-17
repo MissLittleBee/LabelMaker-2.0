@@ -104,6 +104,17 @@ def update_form():
         return jsonify({"error": str(e)}), 500
 
 
+@bp.route("/api/form", methods=["GET"])
+def get_forms():
+    """Get all forms."""
+    try:
+        forms = Form.query.all()
+        forms_list = [form.to_dict() for form in forms]
+        return jsonify({"forms": forms_list}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @bp.route("/api/form", methods=["DELETE"])
 def delete_form():
     """Delete form record."""

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seznam Štítků - LabelMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/labels.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏷️ Seznam Štítků</h1>
+            <a href="/" class="btn-back">← Zpět na domovskou stránku</a>
+        </div>
+
+        <div class="action-bar">
+            <div class="filters">
+                <input type="text" id="searchInput" placeholder="🔍 Hledat podle názvu..." class="search-input">
+
+                <select id="printFilter" class="filter-select">
+                    <option value="all">Všechny cenovky</option>
+                    <option value="marked">Označené k tisku</option>
+                    <option value="unmarked">Neoznačené</option>
+                </select>
+            </div>
+
+            <a href="/labels/new" class="btn btn-primary">
+                ➕ Nový štítek
+            </a>
+        </div>
+
+        <div class="forms-table-container">
+            <table class="forms-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Název produktu</th>
+                        <th>Forma</th>
+                        <th>Množství</th>
+                        <th>Cena</th>
+                        <th>Jedn. cena</th>
+                        <th>K tisku</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+                <tbody id="labelsTableBody">
+                    <tr class="loading-row">
+                        <td colspan="8">Načítám data...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <p>Zatím nemáte žádné štítky.</p>
+                <a href="/labels/new" class="btn btn-primary">
+                    Vytvořit první štítek
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upravit štítek</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" onsubmit="handleEditSubmit(event)">
+                <input type="hidden" id="editLabelId">
+
+                <div class="form-group">
+                    <label for="editProductName">Název produktu *</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editForm">Forma *</label>
+                    <select id="editForm" required>
+                        {% for form in forms %}
+                        <option value="{{ form.short_name }}">
+                            {{ form.name }} ({{ form.short_name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAmount">Množství *</label>
+                    <input type="number" id="editAmount" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPrice">Cena (Kč) *</label>
+                    <input type="number" id="editPrice" step="0.01" min="0" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                        Zrušit
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Uložit změny
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Potvrdit smazání</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Opravdu chcete smazat štítek "<span id="deleteLabelName"></span>"?</p>
+                <p class="warning-text">⚠️ Tato akce je nevratná!</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    Zrušit
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    Smazat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/list_labels.js') }}"></script>
+</body>
+
+</html>

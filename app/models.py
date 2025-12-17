@@ -6,13 +6,19 @@ from app.db import db
 class Label(db.Model):
     """Model for storing generated labels."""
 
-    product_name = db.Column(db.String(255), nullable=False, primary_key=True)
-    form = db.Column(db.String(50), nullable=False, primary_key=True)
-    amount = db.Column(db.Float, nullable=False, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_name = db.Column(db.String(255), nullable=False)
+    form = db.Column(db.String(50), db.ForeignKey("form.short_name"), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
     price = db.Column(db.Float, nullable=False)
     unit_price = db.Column(db.Float, nullable=True)
     marked_to_print = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Unique constraint on combination
+    __table_args__ = (
+        db.UniqueConstraint("product_name", "form", "amount", name="unique_label"),
+    )
 
     def to_dict(self):
         return {
@@ -22,7 +28,7 @@ class Label(db.Model):
             "form": self.form,
             "amount": self.amount,
             "unit_price": self.unit_price,
-            "print": self.print,
+            "marked_to_print": self.marked_to_print,
             "created_at": self.created_at.isoformat(),
         }
 

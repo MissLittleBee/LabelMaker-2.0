@@ -49,10 +49,12 @@ def create_app():
 
     # Register blueprints
     from app.routes.forms.forms_routes import bp as forms_bp
-    from app.routes.routes import bp as labels_bp
+    from app.routes.labels.label_routes import bp as labels_bp
+    from app.routes.routes import bp as main_bp
 
-    app.register_blueprint(labels_bp)
+    app.register_blueprint(main_bp)
     app.register_blueprint(forms_bp)
+    app.register_blueprint(labels_bp)
     logger.info("Routes registered")
 
     return app
