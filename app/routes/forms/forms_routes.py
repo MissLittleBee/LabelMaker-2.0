@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint, jsonify, render_template, request
 
 from app.db import db
 from app.models import Form
@@ -26,9 +26,18 @@ def create_form():
         short_name = data.get("short_name", "").strip()
         unit = data.get("unit", "").strip()
 
-        if not name or not short_name or not unit:
+        # Check for missing fields and report which ones
+        missing_fields = []
+        if not name:
+            missing_fields.append("name")
+        if not short_name:
+            missing_fields.append("short_name")
+        if not unit:
+            missing_fields.append("unit")
+
+        if missing_fields:
             return jsonify(
-                {"error": "Missing required fields: name, short_name, unit"}
+                {"error": f"Missing required fields: {', '.join(missing_fields)}"}
             ), 400
 
         # Create form record
@@ -63,16 +72,25 @@ def update_form():
         short_name = data.get("short_name", "").strip()
         unit = data.get("unit", "").strip()
 
-        if not name or not short_name or not unit:
+        # Check for missing fields and report which ones
+        missing_fields = []
+        if not name:
+            missing_fields.append("name")
+        if not short_name:
+            missing_fields.append("short_name")
+        if not unit:
+            missing_fields.append("unit")
+
+        if missing_fields:
             return jsonify(
-                {"error": "Missing required fields: name, short_name, unit"}
+                {"error": f"Missing required fields: {', '.join(missing_fields)}"}
             ), 400
 
         # Find and update form
         form = Form.query.get(name)
         if not form:
             return jsonify({"error": "Form not found"}), 404
-            
+
         form.short_name = short_name
         form.unit = unit
         db.session.commit()
@@ -96,7 +114,7 @@ def delete_form():
         db.session.delete(form)
         db.session.commit()
         return jsonify({"message": "Form deleted successfully"}), 200
+    
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-

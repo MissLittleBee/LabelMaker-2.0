@@ -22,7 +22,7 @@ class Label(db.Model):
             "form": self.form,
             "amount": self.amount,
             "unit_price": self.unit_price,
-            "marked_to_print": self.marked_to_print,
+            "print": self.print,
             "created_at": self.created_at.isoformat(),
         }
 
