@@ -17,6 +17,10 @@ class Config:
         db_file = BASE_DIR / "instance" / "labelmaker.db"
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_file}"
 
+    # Logging configuration
     LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
     DEBUG = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
+
+    # SQLAlchemy configuration
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ECHO = DEBUG  # Log SQL queries in debug mode

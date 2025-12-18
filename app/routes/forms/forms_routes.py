@@ -1,14 +1,18 @@
+import logging
+
 from flask import Blueprint, jsonify, render_template, request
 
 from app.db import db
 from app.models import Form
 
+logger = logging.getLogger(__name__)
 bp = Blueprint("forms", __name__)
 
 
 @bp.route("/forms", methods=["GET"])
 def list_forms():
     """Render forms management page."""
+    logger.info("Rendering forms management page")
     return render_template("forms/list_forms.html")
 
 
@@ -16,10 +20,13 @@ def list_forms():
 def create_form():
     """Create a new form."""
     try:
+        logger.info("Received request to create new form")
         data = request.get_json()
+        logger.debug(f"Request data: {data}")
 
         # Validate input
         if not data:
+            logger.warning("No JSON data provided in create form request")
             return jsonify({"error": "No JSON data provided"}), 400
 
         name = data.get("name", "").strip()
@@ -36,6 +43,7 @@ def create_form():
             missing_fields.append("unit")
 
         if missing_fields:
+            logger.warning(f"Missing required fields: {', '.join(missing_fields)}")
             return jsonify(
                 {"error": f"Missing required fields: {', '.join(missing_fields)}"}
             ), 400
@@ -48,12 +56,16 @@ def create_form():
         )
         db.session.add(form)
         db.session.commit()
+        logger.info(
+            f"Form created successfully: {name} (short_name: {short_name}, unit: {unit})"
+        )
 
         return jsonify(
             {"message": "Form created successfully", "form": form.to_dict()}
         ), 201
 
     except Exception as e:
+        logger.error(f"Error creating form: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
@@ -62,10 +74,13 @@ def create_form():
 def update_form():
     """Edit form record."""
     try:
+        logger.info("Received request to update form")
         data = request.get_json()
+        logger.debug(f"Update data: {data}")
 
         # Validate input
         if not data:
+            logger.warning("No JSON data provided in update form request")
             return jsonify({"error": "No JSON data provided"}), 400
 
         name = data.get("name", "").strip()
@@ -82,6 +97,7 @@ def update_form():
             missing_fields.append("unit")
 
         if missing_fields:
+            logger.warning(f"Missing required fields: {', '.join(missing_fields)}")
             return jsonify(
                 {"error": f"Missing required fields: {', '.join(missing_fields)}"}
             ), 400
@@ -89,17 +105,21 @@ def update_form():
         # Find and update form
         form = Form.query.get(name)
         if not form:
+            logger.warning(f"Form not found: {name}")
             return jsonify({"error": "Form not found"}), 404
 
+        logger.debug(f"Updating form {name}: short_name={short_name}, unit={unit}")
         form.short_name = short_name
         form.unit = unit
         db.session.commit()
+        logger.info(f"Form updated successfully: {name}")
 
         return jsonify(
             {"message": "Form updated successfully", "form": form.to_dict()}
         ), 200
 
     except Exception as e:
+        logger.error(f"Error updating form: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
@@ -108,10 +128,13 @@ def update_form():
 def get_forms():
     """Get all forms."""
     try:
+        logger.info("Fetching all forms")
         forms = Form.query.all()
+        logger.debug(f"Found {len(forms)} forms in database")
         forms_list = [form.to_dict() for form in forms]
         return jsonify({"forms": forms_list}), 200
     except Exception as e:
+        logger.error(f"Error fetching forms: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -121,11 +144,19 @@ def delete_form():
     try:
         data = request.get_json()
         form_name = data.get("name")
+        logger.info(f"Deleting form: {form_name}")
+
         form = Form.query.get(form_name)
+        if not form:
+            logger.warning(f"Form not found for deletion: {form_name}")
+            return jsonify({"error": "Form not found"}), 404
+
         db.session.delete(form)
         db.session.commit()
+        logger.info(f"Form deleted successfully: {form_name}")
         return jsonify({"message": "Form deleted successfully"}), 200
-    
+
     except Exception as e:
+        logger.error(f"Error deleting form: {str(e)}", exc_info=True)
         db.session.rollback()
         return jsonify({"error": str(e)}), 500

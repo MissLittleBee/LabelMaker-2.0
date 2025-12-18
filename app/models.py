@@ -1,6 +1,9 @@
+import logging
 from datetime import datetime
 
 from app.db import db
+
+logger = logging.getLogger(__name__)
 
 
 class Label(db.Model):
@@ -19,6 +22,9 @@ class Label(db.Model):
     __table_args__ = (
         db.UniqueConstraint("product_name", "form", "amount", name="unique_label"),
     )
+
+    def __repr__(self):
+        return f"<Label(id={self.id}, product='{self.product_name}', form='{self.form}', marked={self.marked_to_print})>"
 
     def to_dict(self):
         return {
@@ -39,6 +45,9 @@ class Form(db.Model):
     name = db.Column(db.String(100), primary_key=True)
     short_name = db.Column(db.String(100), unique=True, nullable=False)
     unit = db.Column(db.String(20), nullable=False)
+
+    def __repr__(self):
+        return f"<Form(name='{self.name}', short_name='{self.short_name}', unit='{self.unit}')>"
 
     def to_dict(self):
         return {

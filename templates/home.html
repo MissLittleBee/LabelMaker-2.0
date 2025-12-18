@@ -4,57 +4,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LabelMaker - Vítej!</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <title>Domů - LabelMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
 <body>
-    <div class="container">
-        <h1>🏷️ LabelMaker 2.0</h1>
-        <p class="subtitle">Easy peasy lékárenské cenovky</p>
-
-        <div class="welcome">
-            <p>👋 <strong>Vítej!</strong> LabelMaker je tu pro to, aby ti ulehčil práci s tvorbou cenovek.</p>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>🏥 LabelMaker</h1>
         </div>
-        <a href="/labels/print" class="option-card">
-            <div class="option-icon">🖨️</div>
-            <div class="option-content">
-                <h3>Vytiskni nové cenovky</h3>
-                <p>Vyber cenovky, uprav je, přidej nové a vytiskni</p>
+        <div class="nav-menu">
+            <a href="/" class="nav-item active">
+                <span class="nav-item-icon">🏠</span>
+                <span class="nav-item-text">Domů</span>
+            </a>
+            <a href="/labels" class="nav-item">
+                <span class="nav-item-icon">🏷️</span>
+                <span class="nav-item-text">Cenovky</span>
+            </a>
+            <a href="/labels/new" class="nav-item">
+                <span class="nav-item-icon">➕</span>
+                <span class="nav-item-text">Nová cenovka</span>
+            </a>
+            <a href="/labels/print" class="nav-item">
+                <span class="nav-item-icon">🖨️</span>
+                <span class="nav-item-text">Tisk cenovek</span>
+            </a>
+            <a href="/forms" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                <span class="nav-item-text">Lékové formy</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">🏥 LabelMaker 2.0</h1>
             </div>
-        </a>
 
-        <div class="options">
-            <a href="/labels" class="option-card">
-                <div class="option-icon">📋</div>
-                <div class="option-content">
-                    <h3>Správa cenovek</h3>
-                    <p>Procházej cenovky v databázi</p>
-                </div>
-            </a>
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="/labels/print" class="quick-action-card primary">
+                    <div class="quick-action-icon">🖨️</div>
+                    <div class="quick-action-content">
+                        <h3>Tisk cenovek</h3>
+                        <p>Vytiskněte připravené cenovky</p>
+                    </div>
+                    <div class="quick-action-arrow">→</div>
+                </a>
 
-            <a href="/labels/new" class="option-card">
-                <div class="option-icon">📝</div>
-                <div class="option-content">
-                    <h3>Vytvoř nové cenovky</h3>
-                    <p>Přidej nové cenovky bez tisku</p>
-                </div>
-            </a>
+                <a href="/labels/new" class="quick-action-card success">
+                    <div class="quick-action-icon">➕</div>
+                    <div class="quick-action-content">
+                        <h3>Nová cenovka</h3>
+                        <p>Vytvořte nový cenová cenovka</p>
+                    </div>
+                    <div class="quick-action-arrow">→</div>
+                </a>
+            </div>
 
+            <!-- Main Cards -->
+            <div class="feature-grid">
+                <a href="/labels" class="feature-card">
+                    <div class="feature-card-header">
+                        <div class="feature-icon">🏷️</div>
+                        <h3>Správa cenovek</h3>
+                    </div>
+                    <p class="feature-description">Správa cenovek v databázi</p>
+                </a>
 
-            <a href="/forms" class="option-card">
-                <div class="option-icon">📦</div>
-                <div class="option-content">
-                    <h3>Správa lékových forem</h3>
-                    <p>Edituj lékové formy</p>
-                </div>
-            </a>
-        </div>
+                <a href="/forms" class="feature-card">
+                    <div class="feature-card-header">
+                        <div class="feature-icon">📦</div>
+                        <h3>Lékové formy</h3>
+                    </div>
+                    <p class="feature-description">Správa lékových forem</p>
+                </a>
 
-        <div class="footer">
-            <p>LabelMaker 2.0 © 2025</p>
-        </div>
-    </div>
+                <a href="/labels?filter=marked" class="feature-card">
+                    <div class="feature-card-header">
+                        <div class="feature-icon">✓</div>
+                        <h3>Označené k tisku</h3>
+                    </div>
+                    <p class="feature-description">Rychlý přehled cenovek připravených k vytištění</p>
+                </a>
+
+                <a href="/labels?sort=recent" class="feature-card">
+                    <div class="feature-card-header">
+                        <div class="feature-icon">🕐</div>
+                        <h3>Nedávné</h3>
+                    </div>
+                    <p class="feature-description">Zobrazit naposledyupravené cenovky</p>
+                    <div class="feature-badge">
+                    </div>
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <div class="home-footer">
+                <p>LabelMaker 2.0 © 2025 | Aplikace pro správu cenovek</p>
+            </div>
+    </main>
 </body>
 
 </html>

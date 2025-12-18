@@ -40,7 +40,7 @@ async function handleSubmit(event) {
         const data = await response.json();
 
         if (response.ok) {
-            showNotification('Štítek byl úspěšně vytvořen!', 'success');
+            showNotification('Cenovka byl úspěšně vytvořen!', 'success');
             setTimeout(() => {
                 window.location.href = '/labels/new';
             }, 1500);

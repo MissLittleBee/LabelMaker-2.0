@@ -61,12 +61,14 @@ function createFormRow(form) {
         <td><code>${escapeHtml(form.short_name)}</code></td>
         <td>${unitDisplay[form.unit] || form.unit}</td>
         <td>
-            <button class="btn btn-small btn-edit" onclick="openEditModal('${escapeHtml(form.name)}')">
-                ✏️ Upravit
-            </button>
-            <button class="btn btn-small btn-delete" onclick="openDeleteModal('${escapeHtml(form.name)}')">
-                🗑️ Smazat
-            </button>
+            <div class="table-actions">
+                <button class="btn btn-small btn-primary" onclick="openEditModal('${escapeHtml(form.name)}')">
+                    ✏️ Upravit
+                </button>
+                <button class="btn btn-small btn-danger" onclick="openDeleteModal('${escapeHtml(form.name)}')">
+                    🗑️ Smazat
+                </button>
+            </div>
         </td>
     `;
 

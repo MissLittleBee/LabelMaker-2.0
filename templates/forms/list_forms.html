@@ -1,43 +1,76 @@
 <!DOCTYPE html>
-<html lang="vs">
+<html lang="cs">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Správa Forem - LabelMaker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>🏥 LabelMaker</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="/" class="nav-item">
+                <span class="nav-item-icon">🏠</span>
+                <span class="nav-item-text">Domů</span>
+            </a>
+            <a href="/labels" class="nav-item">
+                <span class="nav-item-icon">🏷️</span>
+                <span class="nav-item-text">Cenovky</span>
+            </a>
+            <a href="/labels/new" class="nav-item">
+                <span class="nav-item-icon">➕</span>
+                <span class="nav-item-text">Nová cenovka</span>
+            </a>
+            <a href="/labels/print" class="nav-item">
+                <span class="nav-item-icon">🖨️</span>
+                <span class="nav-item-text">Tisk cenovek</span>
+            </a>
+            <a href="/forms" class="nav-item active">
+                <span class="nav-item-icon">📦</span>
+                <span class="nav-item-text">Lékové formy</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
             <h1>📦 Správa lékových forem</h1>
-            <a href="/" class="btn-back">← Zpět na domovskou stránku</a>
+            <p>Spravujte druhy balení a lékové formy produktů</p>
         </div>
 
-        <div class="action-bar">
-            <button class="btn btn-primary" onclick="openCreateModal()">
-                ➕ Vytvořit novou formu
-            </button>
-        </div>
+        <div class="container">
+            <div class="action-bar">
+                <div class="filters"></div>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    ➕ Vytvořit novou formu
+                </button>
+            </div>
 
-        <div class="forms-table-container">
-            <table class="forms-table">
-                <thead>
-                    <tr>
-                        <th>Název formy</th>
-                        <th>Zkratka</th>
-                        <th>Jednotka</th>
-                        <th>Akce</th>
-                    </tr>
-                </thead>
-                <tbody id="formsTableBody">
-                    <!-- Forms will be loaded here via JavaScript -->
-                    <tr class="loading-row">
-                        <td colspan="4">Načítám data...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Název formy</th>
+                            <th>Zkratka</th>
+                            <th>Jednotka</th>
+                            <th>Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody id="formsTableBody">
+                        <!-- Forms will be loaded here via JavaScript -->
+                        <tr class="loading-row">
+                            <td colspan="4">Načítám data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div id="emptyState" class="empty-state" style="display: none;">
                 <div class="empty-icon">📭</div>
@@ -47,7 +80,7 @@
                 </button>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Create/Edit Modal -->
     <div id="formModal" class="modal">
@@ -73,7 +106,7 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">
                         Zrušit
                     </button>
                     <button type="submit" class="btn btn-primary" id="submitBtn">

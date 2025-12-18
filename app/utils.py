@@ -1,5 +1,14 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def calculate_unit_price(amount, price):
     """Calculate unit price given amount and total price."""
+    logger.debug(f"Calculating unit price: price={price}, amount={amount}")
     if amount <= 0:
+        logger.warning(f"Invalid amount for unit price calculation: {amount}")
         return None
-    return round(price / amount, 2)
+    result = round(price / amount, 2)
+    logger.debug(f"Unit price calculated: {result}")
+    return result

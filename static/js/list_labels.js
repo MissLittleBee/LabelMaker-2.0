@@ -23,7 +23,7 @@ async function loadLabels() {
 
     } catch (error) {
         console.error('Error loading labels:', error);
-        showNotification('Chyba při načítání štítků: ' + error.message, 'error');
+        showNotification('Chyba při načítání cenovek: ' + error.message, 'error');
     }
 }
 
@@ -57,23 +57,26 @@ function createLabelRow(label) {
         : '<span class="print-badge unmarked">✗ Ne</span>';
 
     tr.innerHTML = `
-        <td>${label.id}</td>
         <td><strong>${escapeHtml(label.product_name)}</strong></td>
         <td>${escapeHtml(label.form)}</td>
         <td>${label.amount}</td>
         <td>${label.price} Kč</td>
         <td>${label.unit_price} Kč</td>
-        <td class="print-cell">${printBadge}</td>
+        <td class="print-toggle-container">
+            <label class="print-toggle">
+                <input type="checkbox" ${label.marked_to_print ? 'checked' : ''} onchange="togglePrintMark(${label.id})">
+                <span class="print-toggle-slider"></span>
+            </label>
+        </td>
         <td>
-            <button class="btn-icon btn-toggle" onclick="togglePrintMark(${label.id})" title="Přepnout označení k tisku">
-                ${label.marked_to_print ? '☐' : '☑'}
-            </button>
-            <button class="btn btn-small btn-edit" onclick="openEditModal(${label.id})">
-                ✏️ Upravit
-            </button>
-            <button class="btn btn-small btn-delete" onclick="openDeleteModal(${label.id}, '${escapeHtml(label.product_name)}')">
-                🗑️ Smazat
-            </button>
+            <div class="table-actions">
+                <button class="btn btn-small btn-primary" onclick="openEditModal(${label.id})">
+                    ✏️ Upravit
+                </button>
+                <button class="btn btn-small btn-danger" onclick="openDeleteModal(${label.id}, '${escapeHtml(label.product_name)}')">
+                    🗑️ Smazat
+                </button>
+            </div>
         </td>
     `;
 
@@ -133,7 +136,7 @@ async function togglePrintMark(labelId) {
 function openEditModal(labelId) {
     const label = allLabels.find(l => l.id === labelId);
     if (!label) {
-        showNotification('Štítek nenalezen', 'error');
+        showNotification('Cenovka nenalezen', 'error');
         return;
     }
 
@@ -180,13 +183,13 @@ async function handleEditSubmit(event) {
         if (response.ok) {
             closeEditModal();
             loadLabels();
-            showNotification('Štítek byl aktualizován', 'success');
+            showNotification('Cenovka byl aktualizován', 'success');
         } else {
             showNotification('Chyba: ' + (data.error || 'Neznámá chyba'), 'error');
         }
     } catch (error) {
         console.error('Error updating label:', error);
-        showNotification('Chyba při aktualizaci štítku', 'error');
+        showNotification('Chyba při aktualizaci cenovky', 'error');
     }
 }
 
@@ -217,13 +220,13 @@ async function confirmDelete() {
         if (response.ok) {
             closeDeleteModal();
             loadLabels();
-            showNotification('Štítek byl smazán', 'success');
+            showNotification('Cenovka byl smazán', 'success');
         } else {
             showNotification('Chyba: ' + (data.error || 'Neznámá chyba'), 'error');
         }
     } catch (error) {
         console.error('Error deleting label:', error);
-        showNotification('Chyba při mazání štítku', 'error');
+        showNotification('Chyba při mazání cenovky', 'error');
     }
 }
 

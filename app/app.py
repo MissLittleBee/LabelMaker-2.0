@@ -48,13 +48,18 @@ def create_app():
         logger.info("Database tables created/verified")
 
     # Register blueprints
+    logger.info("Registering application blueprints")
     from app.routes.forms.forms_routes import bp as forms_bp
     from app.routes.labels.label_routes import bp as labels_bp
     from app.routes.routes import bp as main_bp
 
     app.register_blueprint(main_bp)
+    logger.debug("Registered 'main' blueprint")
     app.register_blueprint(forms_bp)
+    logger.debug("Registered 'forms' blueprint")
     app.register_blueprint(labels_bp)
-    logger.info("Routes registered")
+    logger.debug("Registered 'labels' blueprint")
+    logger.info("All blueprints registered successfully")
 
+    logger.info("LabelMaker application initialized successfully")
     return app

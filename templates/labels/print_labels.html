@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tisk cenovek - LabelMaker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h1>🏥 LabelMaker</h1>
+            <p>Lékárenský systém</p>
+        </div>
+        <div class="nav-menu">
+            <a href="/" class="nav-item">
+                <span class="nav-item-icon">🏠</span>
+                <span class="nav-item-text">Domů</span>
+            </a>
+            <a href="/labels" class="nav-item">
+                <span class="nav-item-icon">🏷️</span>
+                <span class="nav-item-text">Štítky</span>
+            </a>
+            <a href="/labels/new" class="nav-item">
+                <span class="nav-item-icon">➕</span>
+                <span class="nav-item-text">Nová cenovka</span>
+            </a>
+            <a href="/labels/print" class="nav-item active">
+                <span class="nav-item-icon">🖨️</span>
+                <span class="nav-item-text">Tisk cenovek</span>
+            </a>
+            <a href="/forms" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                <span class="nav-item-text">Formy balení</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>🖨️ Tisk cenovek</h1>
+            <p>Vytiskněte cenovky</p>
+        </div>
+
+        <!-- Print Controls -->
+        <div class="container">
+            <div class="print-summary">
+                <div class="print-info">
+                    <h2>📋 Připraveno k tisku</h2>
+                    <p class="label-count">
+                        {% if labels %}
+                        <strong>{{ labels|length }}</strong> cenovek označeno k tisku
+                        {% else %}
+                        <strong>0</strong> cenovek označeno k tisku
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if labels %}
+                <div class="print-actions">
+                    <a href="/api/labels/pdf" class="btn btn-primary" id="downloadPdfBtn">
+                        📄 Stáhnout PDF
+                    </a>
+                    <button class="btn btn-secondary" onclick="window.open('/api/labels/pdf', '_blank')">
+                        👁️ Náhled v novém okně
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if not labels %}
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>Žádné cenovky nejsou označeny</p>
+                <a href="/labels" class="btn btn-primary">Přejít na správu cenovek</a>
+            </div>
+            {% else %}
+            <!-- Labels List -->
+            <div class="labels-preview">
+                <h3>📝 Štítky k vytištění:</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Produkt</th>
+                                <th>Forma</th>
+                                <th>Množství</th>
+                                <th>Cena</th>
+                                <th>Jedn. cena</th>
+                                <th>Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for label in labels %}
+                            <tr>
+                                <td><strong>{{ label.product_name }}</strong></td>
+                                <td>{{ label.form }}</td>
+                                <td>{{ label.amount }}</td>
+                                <td><strong>{{ label.price }},-</strong></td>
+                                <td>{{ label.unit_price }} Kč</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="/api/label/{{ label.id }}/pdf" class="btn btn-small btn-secondary"
+                                            title="Stáhnout jen tuti cenovku">
+                                            📄 PDF
+                                        </a>
+                                        <button class="btn btn-small btn-danger" onclick="unmarkLabel({{ label.id }})"
+                                            title="Odebrat z tisku">
+                                            ✕ Zrušit
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icon = type === 'success' ? '✓' : '✕';
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => container.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Unmark label from printing
+        async function unmarkLabel(labelId) {
+            if (!confirm('Opravdu chcete odebrat tuto cenovku z tisku?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/label/${labelId}/toggle-print`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    showToast('Štítek odebrán z tisku', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Chyba při odebírání cenovky', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Chyba při komunikaci se serverem', 'error');
+            }
+        }
+
+        // Download PDF button handler
+        document.getElementById('downloadPdfBtn')?.addEventListener('click', function (e) {
+            e.preventDefault();
+            showToast('Generuji PDF...', 'success');
+            setTimeout(() => {
+                window.location.href = '/api/labels/pdf';
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>
