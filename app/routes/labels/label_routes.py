@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, jsonify, render_template, request, send_file
+from flask.typing import ResponseReturnValue
 
 from app.db import db
 from app.models import Form, Label
@@ -12,7 +13,7 @@ bp = Blueprint("labels", __name__)
 
 
 @bp.route("/labels", methods=["GET"])
-def list_labels():
+def list_labels() -> str:
     """Show labels list page."""
     logger.info("Rendering labels list page")
 
@@ -40,7 +41,7 @@ def list_labels():
 
 
 @bp.route("/labels/new", methods=["GET"])
-def new_label_form():
+def new_label_form() -> str:
     """Show form to create new label."""
     logger.info("Rendering new label form")
     forms = Form.query.all()
@@ -49,7 +50,7 @@ def new_label_form():
 
 
 @bp.route("/api/label", methods=["POST"])
-def create_label():
+def create_label() -> ResponseReturnValue:
     """Create a new label"""
     try:
         logger.info("Received request to create new label")
@@ -127,7 +128,7 @@ def create_label():
 
 
 @bp.route("/api/labels", methods=["GET"])
-def get_labels_api():
+def get_labels_api() -> ResponseReturnValue:
     """List all labels (API)."""
     try:
         logger.info("Fetching all labels")
@@ -158,7 +159,7 @@ def get_labels_api():
 
 
 @bp.route("/api/label/<int:label_id>", methods=["PUT"])
-def update_label(label_id):
+def update_label(label_id: int) -> ResponseReturnValue:
     """Update label information."""
     try:
         logger.info(f"Updating label ID: {label_id}")
@@ -208,7 +209,7 @@ def update_label(label_id):
 
 
 @bp.route("/api/label/<int:label_id>/toggle-print", methods=["POST"])
-def toggle_print_mark(label_id):
+def toggle_print_mark(label_id: int) -> ResponseReturnValue:
     """Toggle print mark for a label."""
     try:
         logger.info(f"Toggling print mark for label ID: {label_id}")
@@ -233,10 +234,11 @@ def toggle_print_mark(label_id):
             f"Error toggling print mark for label {label_id}: {str(e)}", exc_info=True
         )
         db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @bp.route("/api/labels/unmark-all", methods=["POST"])
-def unmark_all_labels():
+def unmark_all_labels() -> ResponseReturnValue:
     """Unmark all labels from printing."""
     try:
         logger.debug("Unmarking all labels from printing")
@@ -260,7 +262,7 @@ def unmark_all_labels():
 
 
 @bp.route("/api/label/<int:label_id>", methods=["DELETE"])
-def delete_label(label_id):
+def delete_label(label_id: int) -> ResponseReturnValue:
     """Delete a label."""
     try:
         logger.info(f"Deleting label ID: {label_id}")
@@ -283,7 +285,7 @@ def delete_label(label_id):
 
 
 @bp.route("/api/label/<int:label_id>", methods=["GET"])
-def get_label(label_id):
+def get_label(label_id: int) -> ResponseReturnValue:
     """Get a specific label by ID."""
     try:
         logger.debug(f"Fetching label ID: {label_id}")
@@ -299,7 +301,7 @@ def get_label(label_id):
 
 
 @bp.route("/labels/print", methods=["GET"])
-def print_labels_page():
+def print_labels_page() -> str:
     """Show print labels page with preview."""
     logger.info("Rendering print labels page")
     # Get all labels marked for printing
@@ -309,7 +311,7 @@ def print_labels_page():
 
 
 @bp.route("/api/labels/pdf", methods=["GET"])
-def generate_pdf_all_marked():
+def generate_pdf_all_marked() -> ResponseReturnValue:
     """Generate PDF with all labels marked for printing."""
     try:
         logger.info("Generating PDF for all marked labels")
@@ -358,7 +360,7 @@ def generate_pdf_all_marked():
 
 
 @bp.route("/api/label/<int:label_id>/pdf", methods=["GET"])
-def generate_pdf_single(label_id):
+def generate_pdf_single(label_id: int) -> ResponseReturnValue:
     """Generate PDF for a single label."""
     try:
         logger.info(f"Generating PDF for single label ID: {label_id}")

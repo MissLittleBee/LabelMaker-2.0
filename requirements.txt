@@ -19,6 +19,11 @@ reportlab>=4.0
 # WSGI server for production / Docker
 gunicorn>=20.1
 
+# Windows EXE packaging
+pyinstaller>=5.0
+pystray>=0.19  # System tray icon support
+Pillow>=9.0  # Required for pystray (already listed above)
+
 # Testing (dev)
 pytest>=7.0
 

@@ -1,11 +1,12 @@
 import logging
 from io import BytesIO
+from typing import Any, Dict, List, Optional, Tuple
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
+from reportlab.pdfgen import canvas as pdf_canvas
 
 logger = logging.getLogger(__name__)
 
@@ -46,14 +47,16 @@ class LabelPDFGenerator:
     MARGIN_TOP = 6 * mm
     MARGIN_BETWEEN = 0 * mm  # No space between labels - they share borders
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize PDF generator."""
+        self.page_width: float
+        self.page_height: float
         self.page_width, self.page_height = A4
         logger.debug(
             f"PDF Generator initialized (Page: {self.page_width}x{self.page_height})"
         )
 
-    def calculate_label_positions(self):
+    def calculate_label_positions(self) -> List[Tuple[float, float]]:
         """Calculate how many labels fit on an A4 page and their positions."""
         # Calculate labels per row and column
         usable_width = self.page_width - (2 * self.MARGIN_LEFT)
@@ -81,7 +84,13 @@ class LabelPDFGenerator:
         )
         return positions
 
-    def draw_label(self, pdf_canvas, x, y, label_data):
+    def draw_label(
+        self,
+        pdf_canvas: pdf_canvas.Canvas,
+        x: float,
+        y: float,
+        label_data: Dict[str, Any],
+    ) -> None:
         """
         Draw a single pharmacy price label.
 
@@ -168,7 +177,7 @@ class LabelPDFGenerator:
         # Restore canvas state
         pdf_canvas.restoreState()
 
-    def generate_pdf(self, labels):
+    def generate_pdf(self, labels: List[Dict[str, Any]]) -> Optional[BytesIO]:
         """
         Generate PDF with all labels marked for printing.
 
@@ -192,7 +201,7 @@ class LabelPDFGenerator:
 
         # Create PDF in memory
         pdf_buffer = BytesIO()
-        pdf = canvas.Canvas(pdf_buffer, pagesize=A4)
+        pdf = pdf_canvas.Canvas(pdf_buffer, pagesize=A4)
         pdf.setTitle("Pharmacy Price Labels")
         pdf.setAuthor("LabelMaker 2.0")
 
@@ -229,7 +238,7 @@ class LabelPDFGenerator:
         return pdf_buffer
 
 
-def generate_labels_pdf(labels):
+def generate_labels_pdf(labels: List[Any]) -> Optional[BytesIO]:
     """
     Convenience function to generate PDF from label list.
 
@@ -242,7 +251,7 @@ def generate_labels_pdf(labels):
     generator = LabelPDFGenerator()
 
     # Convert Label models to dictionaries if needed
-    label_data = []
+    label_data: List[Dict[str, Any]] = []
     for label in labels:
         if hasattr(label, "to_dict"):
             data = label.to_dict()

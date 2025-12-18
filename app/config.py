@@ -5,7 +5,7 @@ from pathlib import Path
 class Config:
     """Base configuration."""
 
-    BASE_DIR = Path(__file__).parent.parent
+    BASE_DIR: Path = Path(__file__).parent.parent
 
     # Build database path - use env var if provided, otherwise use default
     _db_path = os.getenv("DATABASE_URL")
@@ -18,9 +18,9 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_file}"
 
     # Logging configuration
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
-    DEBUG = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "DEBUG")
+    DEBUG: bool = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
 
     # SQLAlchemy configuration
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ECHO = DEBUG  # Log SQL queries in debug mode
+    SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
+    SQLALCHEMY_ECHO: bool = DEBUG  # Log SQL queries in debug mode

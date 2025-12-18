@@ -2,8 +2,10 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from flask import Flask
 
-def setup_logging(app):
+
+def setup_logging(app: Flask) -> logging.Logger:
     """Configure logging for the application."""
 
     # Create logs directory (with parent directories)

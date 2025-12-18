@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, jsonify, render_template, request
+from flask.typing import ResponseReturnValue
 
 from app.db import db
 from app.models import Form
@@ -10,7 +11,7 @@ bp = Blueprint("forms", __name__)
 
 
 @bp.route("/forms", methods=["GET"])
-def list_forms():
+def list_forms() -> str:
     """Render forms management page."""
     logger.info("Rendering forms management page")
 
@@ -85,7 +86,7 @@ def create_form():
 
 
 @bp.route("/api/form", methods=["PUT"])
-def update_form():
+def update_form() -> ResponseReturnValue:
     """Edit form record."""
     try:
         logger.info("Received request to update form")
@@ -139,7 +140,7 @@ def update_form():
 
 
 @bp.route("/api/form", methods=["GET"])
-def get_forms():
+def get_forms() -> ResponseReturnValue:
     """Get all forms."""
     try:
         logger.info("Fetching all forms")
@@ -165,7 +166,7 @@ def get_forms():
 
 
 @bp.route("/api/form", methods=["DELETE"])
-def delete_form():
+def delete_form() -> ResponseReturnValue:
     """Delete form record."""
     try:
         data = request.get_json()

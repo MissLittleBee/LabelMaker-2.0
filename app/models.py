@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import logging
 from datetime import datetime
+from typing import Any, Dict
 
 from app.db import db
 
@@ -23,10 +26,10 @@ class Label(db.Model):
         db.UniqueConstraint("product_name", "form", "amount", name="unique_label"),
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Label(id={self.id}, product='{self.product_name}', form='{self.form}', marked={self.marked_to_print})>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "product_name": self.product_name,
@@ -46,10 +49,10 @@ class Form(db.Model):
     short_name = db.Column(db.String(100), unique=True, nullable=False)
     unit = db.Column(db.String(20), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Form(name='{self.name}', short_name='{self.short_name}', unit='{self.unit}')>"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
             "short_name": self.short_name,
