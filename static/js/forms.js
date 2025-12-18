@@ -4,13 +4,26 @@ let deleteFormName = null;
 
 // Load forms on page load
 document.addEventListener('DOMContentLoaded', function () {
+    // Set the sort select to match URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const sortBy = urlParams.get('sort') || 'name';
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.value = sortBy;
+    }
+
     loadForms();
 });
 
 // Load all forms from API
 async function loadForms() {
     try {
-        const response = await fetch('/api/form');
+        // Get sort parameter from current URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sortBy = urlParams.get('sort') || 'name';
+        console.log('Loading forms with sort:', sortBy);
+
+        const response = await fetch(`/api/form?sort=${sortBy}`);
         const data = await response.json();
 
         const tbody = document.getElementById('formsTableBody');

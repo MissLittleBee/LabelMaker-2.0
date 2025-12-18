@@ -15,9 +15,28 @@ bp = Blueprint("labels", __name__)
 def list_labels():
     """Show labels list page."""
     logger.info("Rendering labels list page")
+
+    # Get sorting parameter from query string
+    sort_by = request.args.get("sort", "name")  # Default: name
+    logger.debug(f"Sorting labels by: {sort_by}")
+
+    # Build query based on sorting option
+    if sort_by == "name":
+        labels = Label.query.order_by(Label.product_name).all()
+    elif sort_by == "date":
+        labels = Label.query.order_by(Label.created_at.desc()).all()
+    elif sort_by == "marked":
+        labels = Label.query.order_by(
+            Label.marked_to_print.desc(), Label.product_name
+        ).all()
+    else:
+        labels = Label.query.order_by(Label.product_name).all()
+
     forms = Form.query.all()
-    logger.debug(f"Loaded {len(forms)} forms for label listing")
-    return render_template("labels/list_labels.html", forms=forms)
+    logger.debug(f"Loaded {len(forms)} forms and {len(labels)} labels for listing")
+    return render_template(
+        "labels/list_labels.html", forms=forms, labels=labels, sort_by=sort_by
+    )
 
 
 @bp.route("/labels/new", methods=["GET"])
@@ -112,7 +131,23 @@ def get_labels_api():
     """List all labels (API)."""
     try:
         logger.info("Fetching all labels")
-        labels = Label.query.all()
+
+        # Get sorting parameter from query string
+        sort_by = request.args.get("sort", "name")  # Default: name
+        logger.debug(f"Sorting labels by: {sort_by}")
+
+        # Build query based on sorting option
+        if sort_by == "name":
+            labels = Label.query.order_by(Label.product_name).all()
+        elif sort_by == "date":
+            labels = Label.query.order_by(Label.created_at.desc()).all()
+        elif sort_by == "marked":
+            labels = Label.query.order_by(
+                Label.marked_to_print.desc(), Label.product_name
+            ).all()
+        else:
+            labels = Label.query.order_by(Label.product_name).all()
+
         logger.debug(f"Found {len(labels)} labels in database")
         return jsonify(
             {"count": len(labels), "labels": [label.to_dict() for label in labels]}

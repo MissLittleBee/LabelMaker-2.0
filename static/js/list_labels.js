@@ -15,7 +15,11 @@ document.addEventListener('DOMContentLoaded', function () {
 // Load all labels from API
 async function loadLabels() {
     try {
-        const response = await fetch('/api/labels');
+        // Get sort parameter from current URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sortBy = urlParams.get('sort') || 'name';
+
+        const response = await fetch(`/api/labels?sort=${sortBy}`);
         const data = await response.json();
 
         allLabels = data.labels || [];

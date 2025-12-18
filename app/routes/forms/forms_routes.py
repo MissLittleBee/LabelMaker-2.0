@@ -13,7 +13,21 @@ bp = Blueprint("forms", __name__)
 def list_forms():
     """Render forms management page."""
     logger.info("Rendering forms management page")
-    return render_template("forms/list_forms.html")
+
+    # Get sorting parameter from query string
+    sort_by = request.args.get("sort", "name")  # Default: name
+    logger.debug(f"Sorting forms by: {sort_by}")
+
+    # Build query based on sorting option
+    if sort_by == "name":
+        forms = Form.query.order_by(Form.name).all()
+    elif sort_by == "short":
+        forms = Form.query.order_by(Form.short_name).all()
+    else:
+        forms = Form.query.order_by(Form.name).all()
+
+    logger.debug(f"Loaded {len(forms)} forms for listing")
+    return render_template("forms/list_forms.html", forms=forms, sort_by=sort_by)
 
 
 @bp.route("/api/form", methods=["POST"])
@@ -129,7 +143,19 @@ def get_forms():
     """Get all forms."""
     try:
         logger.info("Fetching all forms")
-        forms = Form.query.all()
+
+        # Get sorting parameter from query string
+        sort_by = request.args.get("sort", "name")  # Default: name
+        logger.debug(f"Sorting forms by: {sort_by}")
+
+        # Build query based on sorting option
+        if sort_by == "name":
+            forms = Form.query.order_by(Form.name.asc()).all()
+        elif sort_by == "short":
+            forms = Form.query.order_by(Form.short_name.asc()).all()
+        else:
+            forms = Form.query.order_by(Form.name.asc()).all()
+
         logger.debug(f"Found {len(forms)} forms in database")
         forms_list = [form.to_dict() for form in forms]
         return jsonify({"forms": forms_list}), 200

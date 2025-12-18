@@ -55,6 +55,13 @@
                         <option value="marked">K tisku</option>
                         <option value="unmarked">Neoznačené</option>
                     </select>
+
+                    <select id="sortSelect" class="filter-select"
+                        onchange="window.location.href='/labels?sort=' + this.value">
+                        <option value="name" {% if sort_by=='name' %}selected{% endif %}>📝 Název A-Z</option>
+                        <option value="date" {% if sort_by=='date' %}selected{% endif %}>📅 Datum (nejnovější)</option>
+                        <option value="marked" {% if sort_by=='marked' %}selected{% endif %}>✓ K tisku první</option>
+                    </select>
                 </div>
 
                 <a href="/labels/new" class="btn btn-primary">

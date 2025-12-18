@@ -47,7 +47,13 @@
 
         <div class="container">
             <div class="action-bar">
-                <div class="filters"></div>
+                <div class="filters">
+                    <select id="sortSelect" class="filter-select"
+                        onchange="window.location.href='/forms?sort=' + this.value">
+                        <option value="name" {% if sort_by=='name' %}selected{% endif %}>📝 Název A-Z</option>
+                        <option value="short" {% if sort_by=='short' %}selected{% endif %}>🔤 Zkratka A-Z</option>
+                    </select>
+                </div>
                 <button class="btn btn-primary" onclick="openCreateModal()">
                     ➕ Vytvořit novou formu
                 </button>
