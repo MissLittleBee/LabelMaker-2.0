@@ -198,6 +198,29 @@ def toggle_print_mark(label_id):
             f"Error toggling print mark for label {label_id}: {str(e)}", exc_info=True
         )
         db.session.rollback()
+
+
+@bp.route("/api/labels/unmark-all", methods=["POST"])
+def unmark_all_labels():
+    """Unmark all labels from printing."""
+    try:
+        logger.debug("Unmarking all labels from printing")
+        marked_labels = Label.query.filter_by(marked_to_print=True).all()
+        count = len(marked_labels)
+
+        for label in marked_labels:
+            label.marked_to_print = False
+
+        db.session.commit()
+        logger.debug(f"Successfully unmarked {count} labels from printing")
+
+        return jsonify(
+            {"message": f"{count} cenovek odznačeno z tisku", "count": count}
+        ), 200
+
+    except Exception as e:
+        logger.error(f"Error unmarking all labels: {str(e)}", exc_info=True)
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 

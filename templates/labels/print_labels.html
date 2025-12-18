@@ -68,6 +68,9 @@
                     <button class="btn btn-secondary" onclick="window.open('/api/labels/pdf', '_blank')">
                         👁️ Náhled v novém okně
                     </button>
+                    <button class="btn btn-danger" onclick="unmarkAllLabels()" title="Vyčistit tiskovou frontu">
+                        🗑️ Vyčistit tisk
+                    </button>
                 </div>
                 {% endif %}
             </div>
@@ -105,7 +108,7 @@
                                 <td>
                                     <div class="table-actions">
                                         <a href="/api/label/{{ label.id }}/pdf" class="btn btn-small btn-secondary"
-                                            title="Stáhnout jen tuti cenovku">
+                                            title="Stáhnout jen tuto cenovku">
                                             📄 PDF
                                         </a>
                                         <button class="btn btn-small btn-danger" onclick="unmarkLabel({{ label.id }})"
@@ -120,6 +123,7 @@
                     </table>
                 </div>
             </div>
+            {% endif %}
     </main>
 
     <!-- Toast Container -->
@@ -168,6 +172,34 @@
                 } else {
                     const error = await response.json();
                     showToast(error.error || 'Chyba při odebírání cenovky', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Chyba při komunikaci se serverem', 'error');
+            }
+        }
+
+        // Unmark all labels from printing
+        async function unmarkAllLabels() {
+            if (!confirm('Opravdu chcete vyčistit tiskovou frontu?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/labels/unmark-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showToast(result.message, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Chyba při odznačování cenovek', 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
