@@ -21,7 +21,8 @@ def create_app():
     app = Flask(
         __name__, template_folder=str(template_dir), static_folder=str(static_dir)
     )
-    app.config.from_object("app.config.Config")
+    from app.config import Config
+    app.config.from_object(Config)
 
     # Setup logging
     setup_logging(app)

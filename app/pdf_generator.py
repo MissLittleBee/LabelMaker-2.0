@@ -1,5 +1,7 @@
 import logging
+import sys
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from reportlab.lib.pagesizes import A4
@@ -10,21 +12,31 @@ from reportlab.pdfgen import canvas as pdf_canvas
 
 logger = logging.getLogger(__name__)
 
-# Register Unicode fonts for Czech character support
+
+def get_font_path(font_name: str) -> str:
+    """Find path to font."""
+    if getattr(sys, "frozen", False):
+        # Path in EXE (v _internal/static/fonts)
+        base_path = Path(sys._MEIPASS) / "static" / "fonts"
+    else:
+        # Dev path
+        base_path = Path(__file__).parent.parent / "static" / "fonts"
+
+    return str(base_path / font_name)
+
+
 try:
-    pdfmetrics.registerFont(
-        TTFont("DejaVuSans", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
-    )
-    pdfmetrics.registerFont(
-        TTFont(
-            "DejaVuSans-Bold", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        )
-    )
+    regular_path = get_font_path("DejaVuSans.ttf")
+    bold_path = get_font_path("DejaVuSans-Bold.ttf")
+
+    pdfmetrics.registerFont(TTFont("DejaVuSans", regular_path))
+    pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", bold_path))
+
     FONT_REGULAR = "DejaVuSans"
     FONT_BOLD = "DejaVuSans-Bold"
-    logger.info("DejaVu Sans fonts registered for Czech character support")
+    logger.info(f"✓ Fonts registered from: {regular_path}")
 except Exception as e:
-    logger.warning(f"Could not register DejaVu fonts: {e}. Using Helvetica fallback.")
+    logger.warning(f"Could not register fonts: {e}. Fallback to Helvetica.")
     FONT_REGULAR = "Helvetica"
     FONT_BOLD = "Helvetica-Bold"
 
@@ -119,7 +131,7 @@ class LabelPDFGenerator:
 
         # First row: Product name + form + amount + unit
         pdf_canvas.setFillColorRGB(0, 0, 0)  # Black
-        pdf_canvas.setFont(FONT_BOLD, 9)
+        pdf_canvas.setFont(FONT_BOLD, 7)
 
         form_info = f"{form} {amount:.0f} {unit}"
         full_text = f"{product_name}  {form_info}"
@@ -161,13 +173,13 @@ class LabelPDFGenerator:
             pdf_canvas.drawCentredString(text_x, text_y, line2)
 
         # Second row: Large price (main focus)
-        pdf_canvas.setFont(FONT_BOLD, 36)
+        pdf_canvas.setFont(FONT_BOLD, 32)
         price_text = f"{label_data['price']:.0f},-"
         text_y = y + self.LABEL_HEIGHT / 2 - 4 * mm
         pdf_canvas.drawCentredString(text_x, text_y, price_text)
 
         # Third row: Unit price at bottom (e.g., "1tbl = 14,95 Kč")
-        pdf_canvas.setFont(FONT_REGULAR, 10)
+        pdf_canvas.setFont(FONT_REGULAR, 8)
         unit_price = label_data["unit_price"]
         # Format: "1tbl = 14,95 Kč" (without space after number, with space before Kč)
         unit_price_text = f"1 {unit} = {unit_price:.2f} Kč".replace(".", ",")

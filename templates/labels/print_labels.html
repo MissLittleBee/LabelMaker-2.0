@@ -21,7 +21,7 @@
             </a>
             <a href="/labels" class="nav-item">
                 <span class="nav-item-icon">🏷️</span>
-                <span class="nav-item-text">Štítky</span>
+                <span class="nav-item-text">Cenovky</span>
             </a>
             <a href="/labels/new" class="nav-item">
                 <span class="nav-item-icon">➕</span>
@@ -84,7 +84,7 @@
             {% else %}
             <!-- Labels List -->
             <div class="labels-preview">
-                <h3>📝 Štítky k vytištění:</h3>
+                <h3>📝 Cenovky k vytištění:</h3>
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
@@ -167,7 +167,7 @@
                 });
 
                 if (response.ok) {
-                    showToast('Štítek odebrán z tisku', 'success');
+                    showToast('Cenovka odebrána z tisku', 'success');
                     setTimeout(() => location.reload(), 1000);
                 } else {
                     const error = await response.json();

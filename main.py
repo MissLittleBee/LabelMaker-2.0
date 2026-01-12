@@ -1,9 +1,13 @@
 import logging
-import subprocess
 import sys
+import webbrowser
 from pathlib import Path
+from threading import Timer
 
-# Configure basic logging for launcher
+from app import create_app
+from app.db import db
+
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)-8s %(message)s",
@@ -11,72 +15,55 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Get the app directory
-app_dir = Path(__file__).parent
+# Logic for paths in EXE vs Script
+if getattr(sys, "frozen", False):
+    # Path where the .exe is located
+    base_dir = Path(sys.executable).parent
+    # Path where bundled files (templates/static) are temporarily extracted
+    bundle_dir = Path(sys._MEIPASS)
+else:
+    base_dir = Path(__file__).parent
+    bundle_dir = base_dir
 
 
-def create_database():
-    """Initialize database if it doesn't exist."""
-    db_path = app_dir / "database" / "labelmaker.db"
-    logger.debug(f"Checking database path: {db_path}")
+def open_browser():
+    """Opens the default web browser after a short delay."""
+    webbrowser.open_new("http://127.0.0.1:5000/")
 
-    if not db_path.exists():
-        logger.info("Database not found, creating new database...")
-        logger.debug(f"Creating directory: {db_path.parent}")
-        db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Import and initialize
-        logger.debug("Importing Flask application")
-        sys.path.insert(0, str(app_dir))
-        from app import create_app
+def setup_app():
+    """Prepare and return the app instance with correct paths."""
+    db_path = base_dir / "instance" / "labelmaker.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        app = create_app()
-        logger.debug("Flask app created, initializing database tables")
+    # Force database URI to point to the file next to EXE
+    app = create_app()
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 
-        with app.app_context():
-            from app.db import db
+    with app.app_context():
+        db.create_all()
+        logger.info(f"✓ Database ready at: {db_path}")
 
-            db.create_all()
-        logger.info("✓ Database created successfully at: %s", db_path)
-    else:
-        logger.info("✓ Database already exists at: %s", db_path)
+    return app
 
 
 def main():
-    """Main launcher."""
-    logger.info("=" * 60)
-    logger.info("LabelMaker 2.0")
-    logger.info("=" * 60)
-    logger.info("Starting application...")
-    
-    try:
-        create_database()
+    logger.info("Starting LabelMaker 2.0...")
 
-        # Start Flask app
-        logger.info("Starting Flask development server...")
-        logger.info("Server URL: http://localhost:5000")
-        logger.info("Press CTRL+C to stop the server")
-        logger.info("-" * 60)
-        
-        subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "flask",
-                "--app",
-                "app:create_app",
-                "run",
-                "--host",
-                "127.0.0.1",
-            ],
-            cwd=str(app_dir),
-        )
-    except KeyboardInterrupt:
-        logger.info("\n" + "=" * 60)
-        logger.info("Server stopped by user")
-        logger.info("=" * 60)
+    try:
+        app = setup_app()
+
+        # Start timer to open browser
+        Timer(1.5, open_browser).start()
+
+        # Run Flask directly (NOT via subprocess)
+        # In EXE mode, debug must be False
+        app.run(host="127.0.0.1", port=5000, debug=False)
+
     except Exception as e:
         logger.error("Failed to start application: %s", str(e), exc_info=True)
+        # Keep window open if it crashes so user can see the error
+        input("Press Enter to exit...")
         sys.exit(1)
 
 

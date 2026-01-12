@@ -1,6 +1,6 @@
 # LabelMaker 2.0
 
-Modern web application for Czech pharmacy to generate price labels with full Czech diacritics support.
+Modern web application primary for Czech pharmacy to generate price labels with czech language localization.
 
 ## 🎯 Features
 
@@ -17,7 +17,7 @@ Modern web application for Czech pharmacy to generate price labels with full Cze
 - Python 3.9 or newer
 - Web browser (Chrome, Firefox, Edge, Safari)
 
-## 🚀 Instalace a Spuštění
+## 🚀 Instalation
 
 ### Step 1: clone this repo
 
@@ -52,7 +52,18 @@ pip install -r requirements.txt
 python main.py
 ```
 
-The application will start automatically at: **http://127.0.0.1:5000**
+The application will:
+- Start Flask server on **http://127.0.0.1:5000**
+- Automatically open your default browser
+- Create the SQLite database and logs automatically
+
+**Output example:**
+```
+[2026-01-12 20:40:15] INFO     Starting LabelMaker 2.0...
+[2026-01-12 20:40:15] INFO     LabelMaker application initialized successfully
+ * Serving Flask app 'app.app'
+ * Running on http://127.0.0.1:5000
+```
 
 ## 🖨️ Usage
 
@@ -84,48 +95,6 @@ The application will start automatically at: **http://127.0.0.1:5000**
 - **Scale**: 100% (no scaling)
 - **Layout**: 32 labels (4 columns × 8 rows)
 
-## 🏗️ Project Structure
-
-```
-LabalMaker 2.0/
-├── main.py                 # Application entry point
-├── requirements.txt        # Python dependencies
-├── README.md              # This file
-├── BUILD_INSTRUCTIONS.md  # Guide for building Windows EXE
-├── launcher.py            # Windows launcher (with console)
-├── launcher_tray.py       # Windows launcher (system tray)
-├── build_exe.py           # Build script for PyInstaller
-│
-├── app/                   # Main application
-│   ├── __init__.py
-│   ├── app.py            # Flask application factory
-│   ├── config.py         # Configuration
-│   ├── db.py             # Database (SQLAlchemy)
-│   ├── models.py         # Database models
-│   ├── utils.py          # Utility functions
-│   ├── pdf_generator.py  # PDF generation
-│   ├── central_logging.py # Logging configuration
-│   │
-│   └── routes/           # Flask routes
-│       ├── routes.py     # Main routes
-│       ├── labels/       # Routes for labels
-│       └── forms/        # Routes for pharmaceutical forms
-│
-├── templates/            # HTML templates (Jinja2)
-│   ├── base.html
-│   ├── home.html
-│   ├── labels/
-│   └── forms/
-│
-├── static/               # Static files
-│   ├── css/
-│   └── js/
-│
-└── instance/             # Instance data (created automatically)
-    ├── labelmaker.db     # SQLite database
-    └── logs/             # Application logs
-```
-
 ## 🛠️ Technologies
 
 - **Backend**: Flask 3.0+ (Python web framework)
@@ -136,29 +105,81 @@ LabalMaker 2.0/
 
 ## 📦 Windows EXE Version
 
-For creating a standalone Windows EXE file, see [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md).
+For creating a standalone Windows EXE file that users can double-click to run:
+
+### Prerequisites
+- Windows machine (or Windows CI runner like GitHub Actions)
+- Python 3.9+ installed
+
+### Build Steps
+
+```bash
+# 1. Create virtual environment
+python -m venv venv
+venv\Scripts\activate
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Build the EXE
+python build_exe.py
+```
+
+**Output:** `dist\LabelMaker.exe` (single file, ~150MB)
+
+### How it works
+- **One-file bundle**: All Python code, templates, and static files embedded in the EXE
+- **Auto-launch**: Double-clicking opens the app in default browser, starts Flask server
+- **System tray**: Icon in Windows system tray to control and close the app
+- **Persistent data**: Database stored in `%APPDATA%\LabelMaker\instance\` (survives reinstalls)
+
+### Distribution
+- Copy `dist\LabelMaker.exe` to users
+- No Python installation required on user's PC
+- Works on Windows 7+ (with modern OS)
+
+**Note:** First run takes 5-10 seconds (extracting files to temp folder). Subsequent runs are faster.
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Environment Variables (`.env` file)
+
+Create a `.env` file in the project root:
 
 ```bash
-# Database path (optional)
-DATABASE_URL=sqlite:///path/to/custom.db
+# Debug mode (optional, default=true)
+DEBUG=true
 
 # Logging level (optional)
-LOG_LEVEL=DEBUG  # or INFO, WARNING, ERROR
+# When DEBUG=true: defaults to DEBUG
+# When DEBUG=false: defaults to INFO
+LOG_LEVEL=DEBUG  # Options: DEBUG, INFO, WARNING, ERROR
 
-# Debug mode (optional)
-DEBUG=true  # or false
+# Database path (optional, defaults to instance/labelmaker.db)
+DATABASE_URL=sqlite:///path/to/custom.db
+
+# Flask port (set in main.py instead)
+PORT=5000
 ```
+
+### Log Output
+- **Console**: Real-time logs while running (see terminal output)
+- **File**: Saved to `instance/logs/labelmaker.log` (rotating, max 2MB)
+
+**Log levels:**
+- `DEBUG` - Detailed info, SQL queries, form lookups (development)
+- `INFO` - Application flow, user actions (default)
+- `WARNING` - Potential issues
+- `ERROR` - Errors that occurred
 
 ### Changing Port
 
-Edit `main.py`:
+Edit `main.py`, find this line:
 ```python
-app.run(debug=True, port=8080)  # Change 5000 to 8080
+app.run(host="127.0.0.1", port=5000, debug=False)
 ```
+
+Change `5000` to your desired port (e.g., `8080`).
 
 ## 🐛 Troubleshooting
 
@@ -179,9 +200,22 @@ rm -rf instance/labelmaker.db
 python main.py
 ```
 
+### No DEBUG messages visible
+- Check `.env` has `DEBUG=true`
+- Restart the app after changing `.env`
+- Logs are in `instance/logs/labelmaker.log`
+
+### Foreign key constraint errors
+- Delete database and recreate: `rm -rf instance/labelmaker.db`
+- Ensure you create pharmaceutical forms before labels
+
+### Form lookup shows "ks" instead of actual unit
+- Delete database (schema changed): `rm -rf instance/labelmaker.db`
+- Recreate forms and labels
+
 ### Czech characters not displaying in PDF
 - The application uses DejaVu Sans fonts with full Czech support
-- If missing, install: `pip install reportlab --upgrade`
+- If missing, reinstall: `pip install reportlab --upgrade`
 
 ### Application won't start
 ```bash
@@ -191,6 +225,11 @@ python --version
 # Reinstall dependencies
 pip install -r requirements.txt --force-reinstall
 ```
+
+### EXE build fails
+- Ensure you're on Windows (or use GitHub Actions to build)
+- Delete `build/` and `dist/` folders and try again
+- Check that all dependencies are installed: `pip install -r requirements.txt`
 
 ## 📝 Database Schema
 
@@ -229,4 +268,3 @@ Barbora Hůlová
 
 **Version**: 2.0  
 **Date**: December 2025  
-**Status**: ✅ Production Ready

@@ -18,8 +18,9 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_file}"
 
     # Logging configuration
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "DEBUG")
     DEBUG: bool = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
+    # If LOG_LEVEL not set, use DEBUG when DEBUG=true, otherwise INFO
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL") or ("DEBUG" if DEBUG else "INFO")
 
     # SQLAlchemy configuration
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False

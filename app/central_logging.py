@@ -13,7 +13,9 @@ def setup_logging(app: Flask) -> logging.Logger:
     log_dir.mkdir(parents=True, exist_ok=True)
 
     # Log level from config or environment
-    log_level = getattr(app.config, "LOG_LEVEL", "INFO")
+    log_level_str = getattr(app.config, "LOG_LEVEL", "INFO")
+    # Convert string to logging level (DEBUG=10, INFO=20, WARNING=30, etc)
+    log_level = getattr(logging, log_level_str.upper(), logging.INFO)
 
     # Format: timestamp | level | module | message
     formatter = logging.Formatter(

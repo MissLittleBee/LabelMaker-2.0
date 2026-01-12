@@ -150,9 +150,9 @@ def get_labels_api() -> ResponseReturnValue:
             labels = Label.query.order_by(Label.product_name).all()
 
         logger.debug(f"Found {len(labels)} labels in database")
-        return jsonify(
-            {"count": len(labels), "labels": [label.to_dict() for label in labels]}
-        ), 200
+        labels_data = [label.to_dict() for label in labels]
+        logger.info(f"Returning {len(labels_data)} labels with data: {labels_data}")
+        return jsonify({"count": len(labels_data), "labels": labels_data}), 200
     except Exception as e:
         logger.error(f"Error fetching labels: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
@@ -329,11 +329,17 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
         label_data = []
         for label in marked_labels:
             data = label.to_dict()
-            # Get unit from form
-            form = Form.query.get(label.form)
+            # Get unit from form by short_name (label.form stores short_name)
+            form = Form.query.filter_by(short_name=label.form).first()
+            logger.info(
+                f"Label {label.id} uses form short_name='{label.form}', found form: {form.name if form else 'NOT FOUND'}"
+            )
             if form:
                 data["unit"] = form.unit
             else:
+                logger.warning(
+                    f"Form not found for short_name '{label.form}', defaulting to 'ks'"
+                )
                 data["unit"] = "ks"  # Default to pieces
             label_data.append(data)
 
@@ -372,10 +378,16 @@ def generate_pdf_single(label_id: int) -> ResponseReturnValue:
 
         # Enrich label with form unit information
         data = label.to_dict()
-        form = Form.query.get(label.form)
+        form = Form.query.filter_by(short_name=label.form).first()
+        logger.info(
+            f"Generating single label PDF: form short_name='{label.form}', found form: {form.name if form else 'NOT FOUND'}"
+        )
         if form:
             data["unit"] = form.unit
         else:
+            logger.warning(
+                f"Form not found for short_name '{label.form}', defaulting to 'ks'"
+            )
             data["unit"] = "ks"
 
         # Generate PDF
