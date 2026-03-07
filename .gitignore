@@ -79,3 +79,6 @@ htmlcov/
 # IDEs temporary files
 *.sublime-workspace
 *.sublime-project
+
+#AI
+AGENTS.md
