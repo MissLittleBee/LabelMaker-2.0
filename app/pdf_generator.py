@@ -128,58 +128,52 @@ class LabelPDFGenerator:
         unit = label_data.get("unit", "ml")
         amount = label_data["amount"]
         form = label_data["form"]
+        price_font_size = int(label_data.get("price_font_size", 34))
+        text_font_size = int(label_data.get("text_font_size", 10))
 
-        # First row: Product name + form + amount + unit
+        # First row: Product name (split if needed), second row: rest of name + form + amount + unit
         pdf_canvas.setFillColorRGB(0, 0, 0)  # Black
-        pdf_canvas.setFont(FONT_BOLD, 7)
+        pdf_canvas.setFont(FONT_BOLD, text_font_size)
 
         form_info = f"{form} {amount:.0f} {unit}"
-        full_text = f"{product_name}  {form_info}"
-
         MAX_CHARS_PER_LINE = 25
 
-        # Check if text fits on one line
-        if len(full_text) <= MAX_CHARS_PER_LINE:
-            # Single line - all text fits
-            text_y = y + self.LABEL_HEIGHT - 7 * mm
-            pdf_canvas.drawCentredString(text_x, text_y, full_text)
+        # Try to fit product name on one or two lines, always keep form_info together on line 2
+        if len(product_name) <= MAX_CHARS_PER_LINE:
+            # All fits on one line
+            text_y = y + self.LABEL_HEIGHT - (text_font_size + 2) * mm / 2
+            pdf_canvas.drawCentredString(text_x, text_y, f"{product_name}")
+            # Second line: form info (same font size)
+            pdf_canvas.setFont(FONT_BOLD, text_font_size)
+            text_y = y + self.LABEL_HEIGHT - (text_font_size + 8) * mm / 2
+            pdf_canvas.drawCentredString(text_x, text_y, form_info)
         else:
-            # Two lines - split by whitespace intelligently
-            words = full_text.split()
-            line1 = ""
-            line2 = ""
-
-            # Build first line up to MAX_CHARS_PER_LINE
-            for word in words:
-                if len(line1) + len(word) + 1 <= MAX_CHARS_PER_LINE:
-                    line1 += word + " "
-                else:
-                    line2 += word + " "
-
-            line1 = line1.strip()
-            line2 = line2.strip()
-
-            # If line2 is still too long, truncate it
-            if len(line2) > MAX_CHARS_PER_LINE:
-                line2 = line2[: MAX_CHARS_PER_LINE - 3] + "..."
-
-            # Draw first line
-            text_y = y + self.LABEL_HEIGHT - 5 * mm
+            # Split product name at nearest space before limit
+            split_idx = product_name.rfind(" ", 0, MAX_CHARS_PER_LINE)
+            if split_idx == -1:
+                # No space found, hard split
+                line1 = product_name[:MAX_CHARS_PER_LINE]
+                line2 = product_name[MAX_CHARS_PER_LINE:]
+            else:
+                line1 = product_name[:split_idx]
+                line2 = product_name[split_idx + 1 :]
+            # Draw first line (part of product name)
+            text_y = y + self.LABEL_HEIGHT - (text_font_size + 2) * mm / 2
             pdf_canvas.drawCentredString(text_x, text_y, line1)
-
-            # Draw second line
-            pdf_canvas.setFont(FONT_BOLD, 8)
-            text_y = y + self.LABEL_HEIGHT - 9 * mm
-            pdf_canvas.drawCentredString(text_x, text_y, line2)
+            # Draw second line: rest of name + form info (same font size)
+            pdf_canvas.setFont(FONT_BOLD, text_font_size)
+            text_y = y + self.LABEL_HEIGHT - (text_font_size + 8) * mm / 2
+            second_line = line2.strip() + ("  " if line2.strip() else "") + form_info
+            pdf_canvas.drawCentredString(text_x, text_y, second_line.strip())
 
         # Second row: Large price (main focus)
-        pdf_canvas.setFont(FONT_BOLD, 32)
+        pdf_canvas.setFont(FONT_BOLD, price_font_size)
         price_text = f"{label_data['price']:.0f},-"
         text_y = y + self.LABEL_HEIGHT / 2 - 4 * mm
         pdf_canvas.drawCentredString(text_x, text_y, price_text)
 
         # Third row: Unit price at bottom (e.g., "1tbl = 14,95 Kč")
-        pdf_canvas.setFont(FONT_REGULAR, 8)
+        pdf_canvas.setFont(FONT_REGULAR, text_font_size)
         unit_price = label_data["unit_price"]
         # Format: "1tbl = 14,95 Kč" (without space after number, with space before Kč)
         unit_price_text = f"1 {unit} = {unit_price:.2f} Kč".replace(".", ",")

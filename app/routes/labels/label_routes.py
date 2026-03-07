@@ -1,18 +1,18 @@
 import logging
 
 from flask import Blueprint, jsonify, render_template, request, send_file
-from flask.typing import ResponseReturnValue
 
 from app.db import db
 from app.models import Form, Label
 from app.pdf_generator import generate_labels_pdf
-from app.utils import calculate_unit_price
+from app.utils import calculate_unit_price, load_font_settings, save_font_settings
 
+bp = Blueprint("labels", __name__, url_prefix="/labels")
 logger = logging.getLogger(__name__)
-bp = Blueprint("labels", __name__)
 
 
-@bp.route("/labels", methods=["GET"])
+# Route for /labels (list labels)
+@bp.route("/", methods=["GET"])
 def list_labels() -> str:
     """Show labels list page."""
     logger.info("Rendering labels list page")
@@ -40,7 +40,7 @@ def list_labels() -> str:
     )
 
 
-@bp.route("/labels/new", methods=["GET"])
+@bp.route("/new", methods=["GET"])
 def new_label_form() -> str:
     """Show form to create new label."""
     logger.info("Rendering new label form")
@@ -50,7 +50,7 @@ def new_label_form() -> str:
 
 
 @bp.route("/api/label", methods=["POST"])
-def create_label() -> ResponseReturnValue:
+def create_label():
     """Create a new label"""
     try:
         logger.info("Received request to create new label")
@@ -128,7 +128,7 @@ def create_label() -> ResponseReturnValue:
 
 
 @bp.route("/api/labels", methods=["GET"])
-def get_labels_api() -> ResponseReturnValue:
+def get_labels_api():
     """List all labels (API)."""
     try:
         logger.info("Fetching all labels")
@@ -159,7 +159,7 @@ def get_labels_api() -> ResponseReturnValue:
 
 
 @bp.route("/api/label/<int:label_id>", methods=["PUT"])
-def update_label(label_id: int) -> ResponseReturnValue:
+def update_label(label_id: int):
     """Update label information."""
     try:
         logger.info(f"Updating label ID: {label_id}")
@@ -209,7 +209,7 @@ def update_label(label_id: int) -> ResponseReturnValue:
 
 
 @bp.route("/api/label/<int:label_id>/toggle-print", methods=["POST"])
-def toggle_print_mark(label_id: int) -> ResponseReturnValue:
+def toggle_print_mark(label_id: int):
     """Toggle print mark for a label."""
     try:
         logger.info(f"Toggling print mark for label ID: {label_id}")
@@ -238,7 +238,7 @@ def toggle_print_mark(label_id: int) -> ResponseReturnValue:
 
 
 @bp.route("/api/labels/unmark-all", methods=["POST"])
-def unmark_all_labels() -> ResponseReturnValue:
+def unmark_all_labels():
     """Unmark all labels from printing."""
     try:
         logger.debug("Unmarking all labels from printing")
@@ -262,7 +262,7 @@ def unmark_all_labels() -> ResponseReturnValue:
 
 
 @bp.route("/api/label/<int:label_id>", methods=["DELETE"])
-def delete_label(label_id: int) -> ResponseReturnValue:
+def delete_label(label_id: int):
     """Delete a label."""
     try:
         logger.info(f"Deleting label ID: {label_id}")
@@ -285,7 +285,7 @@ def delete_label(label_id: int) -> ResponseReturnValue:
 
 
 @bp.route("/api/label/<int:label_id>", methods=["GET"])
-def get_label(label_id: int) -> ResponseReturnValue:
+def get_label(label_id: int):
     """Get a specific label by ID."""
     try:
         logger.debug(f"Fetching label ID: {label_id}")
@@ -300,18 +300,35 @@ def get_label(label_id: int) -> ResponseReturnValue:
         return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/labels/print", methods=["GET"])
+@bp.route("/print", methods=["GET"])
 def print_labels_page() -> str:
     """Show print labels page with preview."""
     logger.info("Rendering print labels page")
     # Get all labels marked for printing
     marked_labels = Label.query.filter_by(marked_to_print=True).all()
     logger.debug(f"Found {len(marked_labels)} labels marked for printing")
-    return render_template("labels/print_labels.html", labels=marked_labels)
+    font_settings = load_font_settings()
+    return render_template(
+        "labels/print_labels.html", labels=marked_labels, **font_settings
+    )
+
+
+@bp.route("/api/pdf-font-settings", methods=["POST"])
+def update_pdf_font_settings():
+    """Update and persist PDF font size settings."""
+    try:
+        data = request.get_json() or {}
+        price_font_size = int(data.get("price_font_size", 32))
+        text_font_size = int(data.get("text_font_size", 14))
+        save_font_settings(price_font_size, text_font_size)
+        return jsonify({"message": "Font settings updated."}), 200
+    except Exception as e:
+        logger.error(f"Error updating font settings: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 
 @bp.route("/api/labels/pdf", methods=["GET"])
-def generate_pdf_all_marked() -> ResponseReturnValue:
+def generate_pdf_all_marked():
     """Generate PDF with all labels marked for printing."""
     try:
         logger.info("Generating PDF for all marked labels")
@@ -325,7 +342,17 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
 
         logger.info(f"Generating PDF with {len(marked_labels)} marked labels")
 
-        # Enrich labels with form unit information
+        # Get global font size settings from query params (with defaults)
+        # Load persistent font settings as defaults
+        font_settings = load_font_settings()
+        price_font_size = int(
+            request.args.get("price_font_size", font_settings["price_font_size"])
+        )
+        text_font_size = int(
+            request.args.get("text_font_size", font_settings["text_font_size"])
+        )
+
+        # Enrich labels with form unit information and inject font sizes
         label_data = []
         for label in marked_labels:
             data = label.to_dict()
@@ -341,6 +368,8 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
                     f"Form not found for short_name '{label.form}', defaulting to 'ks'"
                 )
                 data["unit"] = "ks"  # Default to pieces
+            data["price_font_size"] = price_font_size
+            data["text_font_size"] = text_font_size
             label_data.append(data)
 
         # Generate PDF
@@ -366,7 +395,7 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
 
 
 @bp.route("/api/label/<int:label_id>/pdf", methods=["GET"])
-def generate_pdf_single(label_id: int) -> ResponseReturnValue:
+def generate_pdf_single(label_id: int):
     """Generate PDF for a single label."""
     try:
         logger.info(f"Generating PDF for single label ID: {label_id}")

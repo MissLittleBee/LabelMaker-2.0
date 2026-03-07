@@ -29,7 +29,7 @@ async function handleSubmit(event) {
     };
 
     try {
-        const response = await fetch('/api/label', {
+        const response = await fetch('/labels/api/label', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

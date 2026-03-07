@@ -19,7 +19,7 @@ async function loadLabels() {
         const urlParams = new URLSearchParams(window.location.search);
         const sortBy = urlParams.get('sort') || 'name';
 
-        const response = await fetch(`/api/labels?sort=${sortBy}`);
+        const response = await fetch(`/labels/api/labels?sort=${sortBy}`);
         const data = await response.json();
 
         allLabels = data.labels || [];
@@ -113,7 +113,7 @@ function filterLabels() {
 // Toggle print mark for a label
 async function togglePrintMark(labelId) {
     try {
-        const response = await fetch(`/api/label/${labelId}/toggle-print`, {
+        const response = await fetch(`/labels/api/label/${labelId}/toggle-print`, {
             method: 'POST'
         });
 
@@ -174,7 +174,7 @@ async function handleEditSubmit(event) {
     };
 
     try {
-        const response = await fetch(`/api/label/${labelId}`, {
+        const response = await fetch(`/labels/api/label/${labelId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -215,7 +215,7 @@ async function confirmDelete() {
     if (!deleteLabelId) return;
 
     try {
-        const response = await fetch(`/api/label/${deleteLabelId}`, {
+        const response = await fetch(`/labels/api/label/${deleteLabelId}`, {
             method: 'DELETE'
         });
 
