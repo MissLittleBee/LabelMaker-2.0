@@ -3,13 +3,8 @@
 import json
 from unittest.mock import patch
 
-from app.utils import (
-    PRICE_FONT_SIZE_MAX,
-    TEXT_FONT_SIZE_MIN,
-    calculate_unit_price,
-    save_font_settings,
-    translate_db_error,
-)
+from app.constants import PRICE_FONT_SIZE_MAX, TEXT_FONT_SIZE_MIN
+from app.utils import calculate_unit_price, save_font_settings, translate_db_error
 
 # ── translate_db_error ──────────────────────────────────────────────────────────
 

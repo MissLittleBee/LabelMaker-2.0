@@ -29,11 +29,13 @@ _ERROR_PATTERNS: list[Tuple[str, str]] = [
 
 _FALLBACK_MESSAGE = "Došlo k neočekávané chybě. Zkuste to prosím znovu."
 
-# Font size bounds
-PRICE_FONT_SIZE_MIN = 12
-PRICE_FONT_SIZE_MAX = 48
-TEXT_FONT_SIZE_MIN = 8
-TEXT_FONT_SIZE_MAX = 24
+# Font size bounds — imported from constants, re-exported for backwards compatibility
+from app.constants import (  # noqa: E402
+    PRICE_FONT_SIZE_MAX,
+    PRICE_FONT_SIZE_MIN,
+    TEXT_FONT_SIZE_MAX,
+    TEXT_FONT_SIZE_MIN,
+)
 
 
 def translate_db_error(error: Exception) -> Tuple[str, int]:

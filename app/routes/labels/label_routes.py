@@ -2,14 +2,17 @@ import logging
 
 from flask import Blueprint, jsonify, render_template, request, send_file
 
-from app.db import db
-from app.models import Form, Label
-from app.pdf_generator import generate_labels_pdf
-from app.utils import (
+from app.constants import (
+    LABEL_NOT_FOUND,
     PRICE_FONT_SIZE_MAX,
     PRICE_FONT_SIZE_MIN,
     TEXT_FONT_SIZE_MAX,
     TEXT_FONT_SIZE_MIN,
+)
+from app.db import db
+from app.models import Form, Label
+from app.pdf_generator import generate_labels_pdf
+from app.utils import (
     calculate_unit_price,
     load_font_settings,
     save_font_settings,
@@ -181,8 +184,8 @@ def update_label(label_id: int):
         logger.info(f"Updating label ID: {label_id}")
         label = Label.query.get(label_id)
         if not label:
-            logger.warning(f"Label not found: ID {label_id}")
-            return jsonify({"error": "Label not found"}), 404
+            logger.warning(f"{LABEL_NOT_FOUND}: ID {label_id}")
+            return jsonify({"error": LABEL_NOT_FOUND}), 404
 
         data = request.get_json()
         if not data:
@@ -236,8 +239,8 @@ def toggle_print_mark(label_id: int):
         logger.info(f"Toggling print mark for label ID: {label_id}")
         label = Label.query.get(label_id)
         if not label:
-            logger.warning(f"Label not found for toggle: ID {label_id}")
-            return jsonify({"error": "Label not found"}), 404
+            logger.warning(f"{LABEL_NOT_FOUND} for toggle: ID {label_id}")
+            return jsonify({"error": LABEL_NOT_FOUND}), 404
 
         old_value = label.marked_to_print
         label.marked_to_print = not label.marked_to_print
@@ -291,8 +294,8 @@ def delete_label(label_id: int):
         logger.info(f"Deleting label ID: {label_id}")
         label = Label.query.get(label_id)
         if not label:
-            logger.warning(f"Label not found for deletion: ID {label_id}")
-            return jsonify({"error": "Label not found"}), 404
+            logger.warning(f"{LABEL_NOT_FOUND} for deletion: ID {label_id}")
+            return jsonify({"error": LABEL_NOT_FOUND}), 404
 
         label_name = label.product_name
         db.session.delete(label)
@@ -315,8 +318,8 @@ def get_label(label_id: int):
         logger.debug(f"Fetching label ID: {label_id}")
         label = Label.query.get(label_id)
         if not label:
-            logger.warning(f"Label not found: ID {label_id}")
-            return jsonify({"error": "Label not found"}), 404
+            logger.warning(f"{LABEL_NOT_FOUND}: ID {label_id}")
+            return jsonify({"error": LABEL_NOT_FOUND}), 404
         logger.debug(f"Found label: {label.product_name}")
         return jsonify(label.to_dict()), 200
     except Exception as e:
@@ -457,8 +460,8 @@ def generate_pdf_single(label_id: int):
 
         label = Label.query.get(label_id)
         if not label:
-            logger.warning(f"Label not found: ID {label_id}")
-            return jsonify({"error": "Label not found"}), 404
+            logger.warning(f"{LABEL_NOT_FOUND}: ID {label_id}")
+            return jsonify({"error": LABEL_NOT_FOUND}), 404
 
         # Enrich label with form unit information
         data = label.to_dict()
