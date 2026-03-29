@@ -38,6 +38,8 @@ database/
 
 # Logs
 *.log
+plan.md
+web-inspiration.png
 logs/
 
 # Environment variables
