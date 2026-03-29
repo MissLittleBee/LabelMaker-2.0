@@ -4,7 +4,8 @@ from flask import Blueprint, jsonify, render_template, request
 from flask.typing import ResponseReturnValue
 
 from app.db import db
-from app.models import Form
+from app.models import Form, Label
+from app.utils import translate_db_error
 
 logger = logging.getLogger(__name__)
 bp = Blueprint("forms", __name__)
@@ -37,7 +38,6 @@ def create_form():
     try:
         logger.info("Received request to create new form")
         data = request.get_json()
-        logger.debug(f"Request data: {data}")
 
         # Validate input
         if not data:
@@ -82,7 +82,8 @@ def create_form():
     except Exception as e:
         logger.error(f"Error creating form: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/form", methods=["PUT"])
@@ -91,7 +92,6 @@ def update_form() -> ResponseReturnValue:
     try:
         logger.info("Received request to update form")
         data = request.get_json()
-        logger.debug(f"Update data: {data}")
 
         # Validate input
         if not data:
@@ -136,7 +136,8 @@ def update_form() -> ResponseReturnValue:
     except Exception as e:
         logger.error(f"Error updating form: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/form", methods=["GET"])
@@ -162,7 +163,8 @@ def get_forms() -> ResponseReturnValue:
         return jsonify({"forms": forms_list}), 200
     except Exception as e:
         logger.error(f"Error fetching forms: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/form", methods=["DELETE"])
@@ -178,6 +180,19 @@ def delete_form() -> ResponseReturnValue:
             logger.warning(f"Form not found for deletion: {form_name}")
             return jsonify({"error": "Form not found"}), 404
 
+        # Check if any labels reference this form
+        label_count = Label.query.filter_by(form=form.short_name).count()
+        if label_count > 0:
+            logger.warning(
+                f"Cannot delete form '{form_name}': used by {label_count} label(s)"
+            )
+            return jsonify(
+                {
+                    "error": f"Nelze smazat formu '{form_name}' \u2014 je pou\u017e\u00edv\u00e1na {label_count} cenovkou/ami. "
+                    f"Nejprve odstra\u0148te nebo p\u0159e\u0159a\u010fte p\u0159\u00edslu\u0161n\u00e9 cenovky."
+                }
+            ), 409
+
         db.session.delete(form)
         db.session.commit()
         logger.info(f"Form deleted successfully: {form_name}")
@@ -186,4 +201,5 @@ def delete_form() -> ResponseReturnValue:
     except Exception as e:
         logger.error(f"Error deleting form: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code

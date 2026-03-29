@@ -46,13 +46,15 @@ async function loadForms() {
     } catch (error) {
         console.error('Error loading forms:', error);
         const tbody = document.getElementById('formsTableBody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align: center; color: #dc3545;">
-                    ❌ Chyba při načítání dat: ${error.message}
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML = '';
+        const errorRow = document.createElement('tr');
+        const errorCell = document.createElement('td');
+        errorCell.colSpan = 4;
+        errorCell.style.textAlign = 'center';
+        errorCell.style.color = '#dc3545';
+        errorCell.textContent = '❌ Chyba při načítání dat: ' + error.message;
+        errorRow.appendChild(errorCell);
+        tbody.appendChild(errorRow);
     }
 }
 
@@ -72,7 +74,7 @@ function createFormRow(form) {
     tr.innerHTML = `
         <td><strong>${escapeHtml(form.name)}</strong></td>
         <td><code>${escapeHtml(form.short_name)}</code></td>
-        <td>${unitDisplay[form.unit] || form.unit}</td>
+        <td>${unitDisplay[form.unit] || escapeHtml(form.unit)}</td>
         <td>
             <div class="table-actions">
                 <button class="btn btn-small btn-primary" onclick="openEditModal('${escapeHtml(form.name)}')">
@@ -203,7 +205,8 @@ async function confirmDelete() {
             loadForms();
             showNotification('Forma byla smazána', 'success');
         } else {
-            alert('Chyba: ' + (data.error || 'Neznámá chyba'));
+            closeDeleteModal();
+            showNotification(data.error || 'Nezn\u00e1m\u00e1 chyba', 'error');
         }
 
     } catch (error) {
@@ -228,10 +231,17 @@ function showNotification(message, type) {
     toast.className = `toast toast-${type}`;
 
     const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-message">${message}</span>
-    `;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'toast-icon';
+    iconSpan.textContent = icon;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'toast-message';
+    messageSpan.textContent = message;
+
+    toast.appendChild(iconSpan);
+    toast.appendChild(messageSpan);
 
     toastContainer.appendChild(toast);
 

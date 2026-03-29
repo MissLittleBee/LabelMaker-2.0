@@ -1,6 +1,6 @@
 # LabelMaker 2.0
 
-Modern web application primary for Czech pharmacy to generate price labels with czech language localization.
+Very easy and light user friendly stand alone web application primary for Czech pharmacy to generate price labels with czech language localization. This project was created as simplification manual creating price labels in pharmacy I worked in. Primarily is used Windows PC and no installation is needed. 
 
 ## 🎯 Features
 
@@ -15,18 +15,21 @@ Modern web application primary for Czech pharmacy to generate price labels with 
 ## 📋 Requirements
 
 - Python 3.9 or newer
-- Web browser (Chrome, Firefox, Edge, Safari)
+- Web browser (Chrome, Firefox, Edge, Safari,...)
 
-## 🚀 Instalation
+## 🚀 Installation
 
-### Step 1: clone this repo
+
+### Step 1: Clone this repository
+
 
 ```bash
 git clone <repository-url>
-cd "LabelMaker 2.0"
+cd "LabelMaker-2.0"
 ```
 
-### Step 2: Create venv (recommended)
+
+### Step 2: Create a virtual environment (recommended)
 
 **Windows:**
 ```bash
@@ -53,9 +56,9 @@ python main.py
 ```
 
 The application will:
-- Start Flask server on **http://127.0.0.1:5000**
+- Start the Flask server on **http://127.0.0.1:5000**
 - Automatically open your default browser
-- Create the SQLite database and logs automatically
+- Create the SQLite database and logs automatically in `instance/`
 
 **Output example:**
 ```
@@ -64,6 +67,23 @@ The application will:
  * Serving Flask app 'app.app'
  * Running on http://127.0.0.1:5000
 ```
+
+## 🗒️ Logging Format
+
+All logs follow this format:
+`[Timestamp] [Level] [Message], details: [key1=value1, key2=value2, ...]`
+
+See `instance/logs/labelmaker.log` for rotating log files.
+
+## 📁 .env and Logs Safety
+
+The `.env` file and all logs in `instance/logs/` are git-ignored for security and privacy.
+
+## 🗂️ Project Files
+
+- `main.py` — Main entry point for running the app.
+- `build_exe.py` — Script to build a Windows EXE using PyInstaller.
+- `launcher_tray.py`, `launcher.py`, `LabelMaker.spec`, `label_maker.spec` — Placeholders for EXE/tray integration (currently empty or not used directly).
 
 ## 🖨️ Usage
 
@@ -103,6 +123,7 @@ The application will:
 - **Frontend**: Vanilla JavaScript + CSS
 - **Templating**: Jinja2
 
+
 ## 📦 Windows EXE Version
 
 For creating a standalone Windows EXE file that users can double-click to run:
@@ -121,20 +142,21 @@ venv\Scripts\activate
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Build the EXE
 python build_exe.py
 ```
 
-**Output:** `dist\LabelMaker.exe` (single file, ~150MB)
+**Output:** `dist/LabelMaker.exe` (single file, ~150MB)
+
 
 ### How it works
 - **One-file bundle**: All Python code, templates, and static files embedded in the EXE
 - **Auto-launch**: Double-clicking opens the app in default browser, starts Flask server
-- **System tray**: Icon in Windows system tray to control and close the app
+- **System tray**: (Planned) Icon in Windows system tray to control and close the app
 - **Persistent data**: Database stored in `%APPDATA%\LabelMaker\instance\` (survives reinstalls)
 
+
 ### Distribution
-- Copy `dist\LabelMaker.exe` to users
+- Copy `dist/LabelMaker.exe` to users
 - No Python installation required on user's PC
 - Works on Windows 7+ (with modern OS)
 
@@ -231,6 +253,7 @@ pip install -r requirements.txt --force-reinstall
 - Delete `build/` and `dist/` folders and try again
 - Check that all dependencies are installed: `pip install -r requirements.txt`
 
+
 ## 📝 Database Schema
 
 ### Table: `label` (Price Labels)
@@ -248,6 +271,7 @@ pip install -r requirements.txt --force-reinstall
 - `short_name` - Abbreviation (unique)
 - `unit` - Unit (ks, ml, g, ...)
 
+
 ## 🤝 Contributing
 
 1. Fork the project
@@ -256,9 +280,11 @@ pip install -r requirements.txt --force-reinstall
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
+
 ## 📄 License
 
 MIT
+
 
 ## 👨‍💻 Author
 
@@ -267,4 +293,4 @@ Barbora Hůlová
 ---
 
 **Version**: 2.0  
-**Date**: December 2025  
+**Date**: March 2026  

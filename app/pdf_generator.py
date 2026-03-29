@@ -96,6 +96,39 @@ class LabelPDFGenerator:
         )
         return positions
 
+    # Padding inside label boundary
+    LABEL_PADDING = 1.5 * mm
+    # Maximum iterations for auto-fit loop
+    _MAX_SHRINK_ITERATIONS = 20
+    _MIN_FONT_SIZE = 5
+
+    def _fit_text_width(
+        self,
+        canvas: pdf_canvas.Canvas,
+        text: str,
+        font_name: str,
+        font_size: float,
+        max_width: float,
+    ) -> float:
+        """Shrink font_size until text fits within max_width.
+
+        Args:
+            canvas: The PDF canvas (used for stringWidth measurement).
+            text: The text string to measure.
+            font_name: Registered font name.
+            font_size: Starting font size.
+            max_width: Maximum allowed width in points.
+
+        Returns:
+            The (possibly reduced) font size that makes text fit.
+        """
+        for _ in range(self._MAX_SHRINK_ITERATIONS):
+            width = canvas.stringWidth(text, font_name, font_size)
+            if width <= max_width or font_size <= self._MIN_FONT_SIZE:
+                break
+            font_size -= 0.5
+        return max(font_size, self._MIN_FONT_SIZE)
+
     def draw_label(
         self,
         pdf_canvas: pdf_canvas.Canvas,
@@ -103,25 +136,30 @@ class LabelPDFGenerator:
         y: float,
         label_data: Dict[str, Any],
     ) -> None:
-        """
-        Draw a single pharmacy price label.
+        """Draw a single pharmacy price label with auto-scaling and clipping.
 
-        - Product name at top
-        - Large price in center
-        - Unit price at bottom (e.g., "1ml = 1,94Kč")
+        Layout zones (top to bottom):
+        - Top ~30%: product name + form info (1–2 lines)
+        - Middle ~40%: large price
+        - Bottom ~30%: unit price
         """
         logger.debug(f"Drawing label at ({x}, {y}): {label_data['product_name']}")
 
-        # Save canvas state
         pdf_canvas.saveState()
 
-        # Draw border (light gray for cutting guide)
+        # Clip to label boundary — nothing renders outside
+        path = pdf_canvas.beginPath()
+        path.rect(x, y, self.LABEL_WIDTH, self.LABEL_HEIGHT)
+        pdf_canvas.clipPath(path, stroke=0)
+
+        # Draw border (light gray cutting guide)
         pdf_canvas.setLineWidth(0.3)
-        pdf_canvas.setStrokeColorRGB(0.7, 0.7, 0.7)  # Light gray
+        pdf_canvas.setStrokeColorRGB(0.7, 0.7, 0.7)
         pdf_canvas.rect(x, y, self.LABEL_WIDTH, self.LABEL_HEIGHT, stroke=1, fill=0)
 
-        # Center X position for all text
+        # Center X for all text
         text_x = x + self.LABEL_WIDTH / 2
+        usable_width = self.LABEL_WIDTH - 2 * self.LABEL_PADDING
 
         # Prepare data
         product_name = label_data["product_name"]
@@ -131,56 +169,71 @@ class LabelPDFGenerator:
         price_font_size = int(label_data.get("price_font_size", 34))
         text_font_size = int(label_data.get("text_font_size", 10))
 
-        # First row: Product name (split if needed), second row: rest of name + form + amount + unit
-        pdf_canvas.setFillColorRGB(0, 0, 0)  # Black
-        pdf_canvas.setFont(FONT_BOLD, text_font_size)
+        # --- Zone boundaries (relative to label bottom-left y) ---
+        top_zone_top = y + self.LABEL_HEIGHT
+        top_zone_bottom = y + self.LABEL_HEIGHT * 0.70
+        mid_zone_top = top_zone_bottom
+        mid_zone_bottom = y + self.LABEL_HEIGHT * 0.30
+        bot_zone_top = mid_zone_bottom
+        bot_zone_bottom = y
 
+        # === TOP ZONE: Product name + form info ===
+        pdf_canvas.setFillColorRGB(0, 0, 0)
         form_info = f"{form} {amount:.0f} {unit}"
         MAX_CHARS_PER_LINE = 25
 
-        # Try to fit product name on one or two lines, always keep form_info together on line 2
         if len(product_name) <= MAX_CHARS_PER_LINE:
-            # All fits on one line
-            text_y = y + self.LABEL_HEIGHT - (text_font_size + 2) * mm / 2
-            pdf_canvas.drawCentredString(text_x, text_y, f"{product_name}")
-            # Second line: form info (same font size)
-            pdf_canvas.setFont(FONT_BOLD, text_font_size)
-            text_y = y + self.LABEL_HEIGHT - (text_font_size + 8) * mm / 2
-            pdf_canvas.drawCentredString(text_x, text_y, form_info)
+            lines = [product_name, form_info]
         else:
-            # Split product name at nearest space before limit
             split_idx = product_name.rfind(" ", 0, MAX_CHARS_PER_LINE)
             if split_idx == -1:
-                # No space found, hard split
                 line1 = product_name[:MAX_CHARS_PER_LINE]
                 line2 = product_name[MAX_CHARS_PER_LINE:]
             else:
                 line1 = product_name[:split_idx]
                 line2 = product_name[split_idx + 1 :]
-            # Draw first line (part of product name)
-            text_y = y + self.LABEL_HEIGHT - (text_font_size + 2) * mm / 2
-            pdf_canvas.drawCentredString(text_x, text_y, line1)
-            # Draw second line: rest of name + form info (same font size)
-            pdf_canvas.setFont(FONT_BOLD, text_font_size)
-            text_y = y + self.LABEL_HEIGHT - (text_font_size + 8) * mm / 2
-            second_line = line2.strip() + ("  " if line2.strip() else "") + form_info
-            pdf_canvas.drawCentredString(text_x, text_y, second_line.strip())
+            second_line = (
+                (line2.strip() + "  " + form_info).strip()
+                if line2.strip()
+                else form_info
+            )
+            lines = [line1, second_line]
 
-        # Second row: Large price (main focus)
-        pdf_canvas.setFont(FONT_BOLD, price_font_size)
+        # Auto-fit each line
+        line_height = text_font_size * 1.3
+        total_text_height = line_height * len(lines)
+        zone_height = top_zone_top - top_zone_bottom
+        start_y = (
+            top_zone_top - (zone_height - total_text_height) / 2 - text_font_size * 0.8
+        )
+
+        for line in lines:
+            fitted_size = self._fit_text_width(
+                pdf_canvas, line, FONT_BOLD, text_font_size, usable_width
+            )
+            pdf_canvas.setFont(FONT_BOLD, fitted_size)
+            pdf_canvas.drawCentredString(text_x, start_y, line)
+            start_y -= line_height
+
+        # === MIDDLE ZONE: Large price ===
         price_text = f"{label_data['price']:.0f},-"
-        text_y = y + self.LABEL_HEIGHT / 2 - 4 * mm
-        pdf_canvas.drawCentredString(text_x, text_y, price_text)
+        fitted_price_size = self._fit_text_width(
+            pdf_canvas, price_text, FONT_BOLD, price_font_size, usable_width
+        )
+        pdf_canvas.setFont(FONT_BOLD, fitted_price_size)
+        mid_center_y = (mid_zone_top + mid_zone_bottom) / 2 - fitted_price_size * 0.35
+        pdf_canvas.drawCentredString(text_x, mid_center_y, price_text)
 
-        # Third row: Unit price at bottom (e.g., "1tbl = 14,95 Kč")
-        pdf_canvas.setFont(FONT_REGULAR, text_font_size)
+        # === BOTTOM ZONE: Unit price ===
         unit_price = label_data["unit_price"]
-        # Format: "1tbl = 14,95 Kč" (without space after number, with space before Kč)
         unit_price_text = f"1 {unit} = {unit_price:.2f} Kč".replace(".", ",")
-        text_y = y + 7 * mm
-        pdf_canvas.drawCentredString(text_x, text_y, unit_price_text)
+        fitted_unit_size = self._fit_text_width(
+            pdf_canvas, unit_price_text, FONT_REGULAR, text_font_size, usable_width
+        )
+        pdf_canvas.setFont(FONT_REGULAR, fitted_unit_size)
+        bot_center_y = (bot_zone_top + bot_zone_bottom) / 2 - fitted_unit_size * 0.35
+        pdf_canvas.drawCentredString(text_x, bot_center_y, unit_price_text)
 
-        # Restore canvas state
         pdf_canvas.restoreState()
 
     def generate_pdf(self, labels: List[Dict[str, Any]]) -> Optional[BytesIO]:

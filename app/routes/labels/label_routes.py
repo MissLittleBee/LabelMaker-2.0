@@ -5,7 +5,16 @@ from flask import Blueprint, jsonify, render_template, request, send_file
 from app.db import db
 from app.models import Form, Label
 from app.pdf_generator import generate_labels_pdf
-from app.utils import calculate_unit_price, load_font_settings, save_font_settings
+from app.utils import (
+    PRICE_FONT_SIZE_MAX,
+    PRICE_FONT_SIZE_MIN,
+    TEXT_FONT_SIZE_MAX,
+    TEXT_FONT_SIZE_MIN,
+    calculate_unit_price,
+    load_font_settings,
+    save_font_settings,
+    translate_db_error,
+)
 
 bp = Blueprint("labels", __name__, url_prefix="/labels")
 logger = logging.getLogger(__name__)
@@ -55,7 +64,6 @@ def create_label():
     try:
         logger.info("Received request to create new label")
         data = request.get_json()
-        logger.debug(f"Request data: {data}")
 
         # Validate input
         if not data:
@@ -96,6 +104,12 @@ def create_label():
             logger.warning(f"Invalid number format: {e}")
             return jsonify({"error": "Price and amount must be valid numbers"}), 400
 
+        # Validate form exists
+        form_record = Form.query.filter_by(short_name=form).first()
+        if not form_record:
+            logger.warning(f"Form not found: short_name={form}")
+            return jsonify({"error": f"Léková forma '{form}' neexistuje."}), 400
+
         # Calculate unit price
         unit_price = calculate_unit_price(amount, price)
         logger.debug(
@@ -124,7 +138,8 @@ def create_label():
     except Exception as e:
         logger.error(f"Error creating label: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/labels", methods=["GET"])
@@ -151,11 +166,12 @@ def get_labels_api():
 
         logger.debug(f"Found {len(labels)} labels in database")
         labels_data = [label.to_dict() for label in labels]
-        logger.info(f"Returning {len(labels_data)} labels with data: {labels_data}")
+        logger.info(f"Returning {len(labels_data)} labels.")
         return jsonify({"count": len(labels_data), "labels": labels_data}), 200
     except Exception as e:
         logger.error(f"Error fetching labels: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/label/<int:label_id>", methods=["PUT"])
@@ -169,7 +185,6 @@ def update_label(label_id: int):
             return jsonify({"error": "Label not found"}), 404
 
         data = request.get_json()
-        logger.debug(f"Update data for label {label_id}: {data}")
         if not data:
             logger.warning("No JSON data provided for label update")
             return jsonify({"error": "No JSON data provided"}), 400
@@ -180,7 +195,12 @@ def update_label(label_id: int):
             label.product_name = data["product_name"].strip()
             updated_fields.append("product_name")
         if "form" in data:
-            label.form = data["form"].strip()
+            new_form = data["form"].strip()
+            form_record = Form.query.filter_by(short_name=new_form).first()
+            if not form_record:
+                logger.warning(f"Form not found: short_name={new_form}")
+                return jsonify({"error": f"Léková forma '{new_form}' neexistuje."}), 400
+            label.form = new_form
             updated_fields.append("form")
         if "amount" in data:
             label.amount = float(data["amount"])
@@ -205,7 +225,8 @@ def update_label(label_id: int):
     except Exception as e:
         logger.error(f"Error updating label {label_id}: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/label/<int:label_id>/toggle-print", methods=["POST"])
@@ -234,7 +255,8 @@ def toggle_print_mark(label_id: int):
             f"Error toggling print mark for label {label_id}: {str(e)}", exc_info=True
         )
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/labels/unmark-all", methods=["POST"])
@@ -258,7 +280,8 @@ def unmark_all_labels():
     except Exception as e:
         logger.error(f"Error unmarking all labels: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/label/<int:label_id>", methods=["DELETE"])
@@ -281,7 +304,8 @@ def delete_label(label_id: int):
     except Exception as e:
         logger.error(f"Error deleting label {label_id}: {str(e)}", exc_info=True)
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/label/<int:label_id>", methods=["GET"])
@@ -297,7 +321,8 @@ def get_label(label_id: int):
         return jsonify(label.to_dict()), 200
     except Exception as e:
         logger.error(f"Error fetching label {label_id}: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/print", methods=["GET"])
@@ -320,11 +345,26 @@ def update_pdf_font_settings():
         data = request.get_json() or {}
         price_font_size = int(data.get("price_font_size", 32))
         text_font_size = int(data.get("text_font_size", 14))
+
+        if not (PRICE_FONT_SIZE_MIN <= price_font_size <= PRICE_FONT_SIZE_MAX):
+            return jsonify(
+                {
+                    "error": f"Velikost písma ceny musí být {PRICE_FONT_SIZE_MIN}–{PRICE_FONT_SIZE_MAX}."
+                }
+            ), 400
+        if not (TEXT_FONT_SIZE_MIN <= text_font_size <= TEXT_FONT_SIZE_MAX):
+            return jsonify(
+                {
+                    "error": f"Velikost písma textu musí být {TEXT_FONT_SIZE_MIN}–{TEXT_FONT_SIZE_MAX}."
+                }
+            ), 400
+
         save_font_settings(price_font_size, text_font_size)
         return jsonify({"message": "Font settings updated."}), 200
     except Exception as e:
         logger.error(f"Error updating font settings: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/labels/pdf", methods=["GET"])
@@ -345,11 +385,25 @@ def generate_pdf_all_marked():
         # Get global font size settings from query params (with defaults)
         # Load persistent font settings as defaults
         font_settings = load_font_settings()
-        price_font_size = int(
-            request.args.get("price_font_size", font_settings["price_font_size"])
+        price_font_size = max(
+            PRICE_FONT_SIZE_MIN,
+            min(
+                PRICE_FONT_SIZE_MAX,
+                int(
+                    request.args.get(
+                        "price_font_size", font_settings["price_font_size"]
+                    )
+                ),
+            ),
         )
-        text_font_size = int(
-            request.args.get("text_font_size", font_settings["text_font_size"])
+        text_font_size = max(
+            TEXT_FONT_SIZE_MIN,
+            min(
+                TEXT_FONT_SIZE_MAX,
+                int(
+                    request.args.get("text_font_size", font_settings["text_font_size"])
+                ),
+            ),
         )
 
         # Enrich labels with form unit information and inject font sizes
@@ -391,7 +445,8 @@ def generate_pdf_all_marked():
 
     except Exception as e:
         logger.error(f"Error generating PDF: {str(e)}", exc_info=True)
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code
 
 
 @bp.route("/api/label/<int:label_id>/pdf", methods=["GET"])
@@ -440,4 +495,5 @@ def generate_pdf_single(label_id: int):
         logger.error(
             f"Error generating PDF for label {label_id}: {str(e)}", exc_info=True
         )
-        return jsonify({"error": str(e)}), 500
+        message, status_code = translate_db_error(e)
+        return jsonify({"error": message}), status_code

@@ -1,10 +1,4 @@
-/* Labels-specific styles */
-
-.filters {
-    display: flex;
-    gap: 15px;
-    flex: 1;
-}
+/* DEPRECATED: All styles are now in main.css. This file is kept empty intentionally. */
 
 .search-input {
     flex: 1;
