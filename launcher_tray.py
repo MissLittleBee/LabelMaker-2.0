@@ -36,7 +36,7 @@ if getattr(sys, "frozen", False):
     # Path where the .exe is located (persistent storage next to exe)
     base_dir = Path(sys.executable).parent
     # Path where bundled files (templates/static) are temporarily extracted
-    bundle_dir = Path(sys._MEIPASS)  # noqa: SLF001
+    bundle_dir = Path(getattr(sys, "_MEIPASS", ""))
 else:
     base_dir = Path(__file__).parent
     bundle_dir = base_dir
@@ -49,7 +49,7 @@ def _create_icon_image() -> "Image.Image":
     size = 64
     image = Image.new("RGB", (size, size), color=(41, 128, 185))
     draw = ImageDraw.Draw(image)
-    draw.rectangle([4, 4, size - 4, size - 4], outline="white", width=2)
+    draw.rectangle((4, 4, size - 4, size - 4), outline="white", width=2)
     draw.text((14, 16), "LM", fill="white")
     return image
 

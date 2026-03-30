@@ -1,4 +1,6 @@
 import logging
+from collections.abc import Callable
+from typing import cast
 
 from flask import Blueprint, jsonify, render_template, request, send_file
 from flask.typing import ResponseReturnValue
@@ -12,8 +14,8 @@ from app.constants import (
     TEXT_FONT_SIZE_MIN,
 )
 from app.db import db
-from app.models import Form, Label
-from app.pdf_generator import generate_labels_pdf
+from app.models import Form, Label, LabelDict
+from app.pdf_generator import PdfLabelData, generate_labels_pdf
 from app.utils import (
     calculate_unit_price,
     load_font_settings,
@@ -25,11 +27,14 @@ bp = Blueprint("labels", __name__, url_prefix="/labels")
 logger = logging.getLogger(__name__)
 
 # Mapping of sort parameter to Label query ordering
-_LABEL_SORT_OPTIONS = {
-    "name": lambda: Label.query.order_by(Label.product_name),
-    "date": lambda: Label.query.order_by(Label.created_at.desc()),
-    "marked": lambda: Label.query.order_by(
-        Label.marked_to_print.desc(), Label.product_name
+_LABEL_SORT_OPTIONS: dict[str, Callable[[], list[Label]]] = {
+    "name": lambda: cast(list[Label], Label.query.order_by(Label.product_name).all()),
+    "date": lambda: cast(
+        list[Label], Label.query.order_by(Label.created_at.desc()).all()
+    ),
+    "marked": lambda: cast(
+        list[Label],
+        Label.query.order_by(Label.marked_to_print.desc(), Label.product_name).all(),
     ),
 }
 
@@ -44,7 +49,7 @@ def _get_sorted_labels(sort_by: str) -> list[Label]:
         List of Label records in requested order.
     """
     query_fn = _LABEL_SORT_OPTIONS.get(sort_by, _LABEL_SORT_OPTIONS["name"])
-    return query_fn().all()
+    return query_fn()
 
 
 def _clamp(value: int, min_val: int, max_val: int) -> int:
@@ -61,7 +66,9 @@ def _clamp(value: int, min_val: int, max_val: int) -> int:
     return max(min_val, min(max_val, value))
 
 
-def _enrich_label_with_unit(label_dict: dict, form_short_name: str) -> dict:
+def _enrich_label_with_unit(
+    label_dict: LabelDict, form_short_name: str
+) -> PdfLabelData:
     """Enrich a label dict with unit from its form.
 
     Args:
@@ -69,17 +76,16 @@ def _enrich_label_with_unit(label_dict: dict, form_short_name: str) -> dict:
         form_short_name: The form's short_name to look up.
 
     Returns:
-        Label dict with 'unit' field added.
+        PdfLabelData with 'unit' field added.
     """
     form = Form.query.filter_by(short_name=form_short_name).first()
-    if form:
-        label_dict["unit"] = form.unit
-    else:
+    unit: str = form.unit if form else "ks"
+    if not unit:
         logger.warning(
-            f"Form not found for short_name '{form_short_name}', defaulting to 'ks'"
+            "Form not found for short_name '%s', defaulting to 'ks'", form_short_name
         )
-        label_dict["unit"] = "ks"
-    return label_dict
+        unit = "ks"
+    return cast(PdfLabelData, {**label_dict, "unit": unit})
 
 
 # Route for /labels (list labels)
@@ -449,7 +455,7 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
             TEXT_FONT_SIZE_MAX,
         )
 
-        label_data = []
+        label_data: list[PdfLabelData] = []
         for label in marked_labels:
             data = _enrich_label_with_unit(label.to_dict(), label.form)
             data["price_font_size"] = price_font_size

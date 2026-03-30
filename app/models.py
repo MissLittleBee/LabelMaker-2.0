@@ -2,14 +2,35 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from typing import Any, Dict
+from typing import TypedDict
 
 from app.db import db
 
 logger = logging.getLogger(__name__)
 
 
-class Label(db.Model):
+class LabelDict(TypedDict):
+    """Typed dict returned by Label.to_dict()."""
+
+    id: int
+    product_name: str
+    price: float
+    form: str
+    amount: float
+    unit_price: float | None
+    marked_to_print: bool
+    created_at: str
+
+
+class FormDict(TypedDict):
+    """Typed dict returned by Form.to_dict()."""
+
+    name: str
+    short_name: str
+    unit: str
+
+
+class Label(db.Model):  # type: ignore[misc, name-defined]
     """Model for storing generated labels."""
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -29,20 +50,20 @@ class Label(db.Model):
     def __repr__(self) -> str:
         return f"<Label(id={self.id}, product='{self.product_name}', form='{self.form}', marked={self.marked_to_print})>"
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "id": self.id,
-            "product_name": self.product_name,
-            "price": self.price,
-            "form": self.form,
-            "amount": self.amount,
-            "unit_price": self.unit_price,
-            "marked_to_print": self.marked_to_print,
-            "created_at": self.created_at.isoformat(),
-        }
+    def to_dict(self) -> LabelDict:
+        return LabelDict(
+            id=self.id,
+            product_name=self.product_name,
+            price=self.price,
+            form=self.form,
+            amount=self.amount,
+            unit_price=self.unit_price,
+            marked_to_print=self.marked_to_print,
+            created_at=self.created_at.isoformat(),
+        )
 
 
-class Form(db.Model):
+class Form(db.Model):  # type: ignore[misc, name-defined]
     """Model for storing product forms."""
 
     name = db.Column(db.String(100), primary_key=True)
@@ -52,9 +73,9 @@ class Form(db.Model):
     def __repr__(self) -> str:
         return f"<Form(name='{self.name}', short_name='{self.short_name}', unit='{self.unit}')>"
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "name": self.name,
-            "short_name": self.short_name,
-            "unit": self.unit,
-        }
+    def to_dict(self) -> FormDict:
+        return FormDict(
+            name=self.name,
+            short_name=self.short_name,
+            unit=self.unit,
+        )

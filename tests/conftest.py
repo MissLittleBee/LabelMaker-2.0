@@ -1,13 +1,20 @@
 """Shared pytest fixtures for LabelMaker tests."""
 
+from __future__ import annotations
+
+from typing import Generator, cast
+
 import pytest
+from flask import Flask
+from flask.testing import FlaskClient
 
 from app.app import create_app
 from app.db import db as _db
+from app.models import FormDict, LabelDict
 
 
 @pytest.fixture()
-def app():
+def app() -> Generator[Flask, None, None]:
     """Create a Flask application configured for testing with an in-memory SQLite DB."""
     application = create_app()
     application.config.update(
@@ -26,31 +33,31 @@ def app():
 
 
 @pytest.fixture()
-def client(app):
+def client(app: Flask) -> FlaskClient:
     """Flask test client."""
     return app.test_client()
 
 
 @pytest.fixture()
-def db_session(app):
+def db_session(app: Flask) -> Generator[object, None, None]:
     """Provide a clean database session for each test."""
     with app.app_context():
         yield _db.session
 
 
 @pytest.fixture()
-def seed_form(client):
+def seed_form(client: FlaskClient) -> FormDict:
     """Create a default form and return its dict."""
     resp = client.post(
         "/api/form",
         json={"name": "Tablety", "short_name": "tbl", "unit": "ks"},
     )
     assert resp.status_code == 201
-    return resp.get_json()["form"]
+    return cast(FormDict, resp.get_json()["form"])
 
 
 @pytest.fixture()
-def seed_label(client, seed_form):
+def seed_label(client: FlaskClient, seed_form: FormDict) -> LabelDict:
     """Create a default label and return its dict."""
     resp = client.post(
         "/labels/api/label",
@@ -62,4 +69,4 @@ def seed_label(client, seed_form):
         },
     )
     assert resp.status_code == 201
-    return resp.get_json()["label"]
+    return cast(LabelDict, resp.get_json()["label"])

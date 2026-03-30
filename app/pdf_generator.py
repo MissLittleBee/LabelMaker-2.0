@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import logging
 import sys
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TypedDict
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
@@ -11,6 +13,22 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas as pdf_canvas
 
 logger = logging.getLogger(__name__)
+
+
+class _PdfLabelDataRequired(TypedDict):
+    product_name: str
+    form: str
+    amount: float
+    price: float
+    unit_price: float | None
+
+
+class PdfLabelData(_PdfLabelDataRequired, total=False):
+    """Dict passed to the PDF generator for each label."""
+
+    unit: str
+    price_font_size: int
+    text_font_size: int
 
 
 def _format_czech_number(value: float, decimals: int = 2) -> str:
@@ -31,7 +49,7 @@ def get_font_path(font_name: str) -> str:
     """Find path to font."""
     if getattr(sys, "frozen", False):
         # Path in EXE (v _internal/static/fonts)
-        base_path = Path(sys._MEIPASS) / "static" / "fonts"
+        base_path = Path(getattr(sys, "_MEIPASS", "")) / "static" / "fonts"
     else:
         # Dev path
         base_path = Path(__file__).parent.parent / "static" / "fonts"
@@ -82,7 +100,7 @@ class LabelPDFGenerator:
             f"PDF Generator initialized (Page: {self.page_width}x{self.page_height})"
         )
 
-    def calculate_label_positions(self) -> List[Tuple[float, float]]:
+    def calculate_label_positions(self) -> list[tuple[float, float]]:
         """Calculate how many labels fit on an A4 page and their positions."""
         # Calculate labels per row and column
         usable_width = self.page_width - (2 * self.MARGIN_LEFT)
@@ -148,7 +166,7 @@ class LabelPDFGenerator:
         pdf_canvas: pdf_canvas.Canvas,
         x: float,
         y: float,
-        label_data: Dict[str, Any],
+        label_data: PdfLabelData,
     ) -> None:
         """Draw a single pharmacy price label with auto-scaling and clipping.
 
@@ -250,7 +268,7 @@ class LabelPDFGenerator:
 
         pdf_canvas.restoreState()
 
-    def generate_pdf(self, labels: List[Dict[str, Any]]) -> Optional[BytesIO]:
+    def generate_pdf(self, labels: list[PdfLabelData]) -> BytesIO | None:
         """
         Generate PDF with all labels marked for printing.
 
@@ -311,30 +329,15 @@ class LabelPDFGenerator:
         return pdf_buffer
 
 
-def generate_labels_pdf(labels: List[Any]) -> Optional[BytesIO]:
+def generate_labels_pdf(labels: list[PdfLabelData]) -> BytesIO | None:
     """
     Convenience function to generate PDF from label list.
 
     Args:
-        labels: List of Label model instances or dictionaries
+        labels: List of PdfLabelData dicts (from _enrich_label_with_unit).
 
     Returns:
-        BytesIO: PDF file in memory
+        BytesIO: PDF file in memory, or None if labels list is empty.
     """
     generator = LabelPDFGenerator()
-
-    # Convert Label models to dictionaries if needed
-    label_data: List[Dict[str, Any]] = []
-    for label in labels:
-        if hasattr(label, "to_dict"):
-            data = label.to_dict()
-        else:
-            data = label
-
-        # Add unit field (get from form if available)
-        if "unit" not in data:
-            data["unit"] = "ml"  # Default unit
-
-        label_data.append(data)
-
-    return generator.generate_pdf(label_data)
+    return generator.generate_pdf(labels)

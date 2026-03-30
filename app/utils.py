@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple, TypedDict
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def translate_db_error(error: Exception) -> Tuple[str, int]:
     return _FALLBACK_MESSAGE, 500
 
 
-def calculate_unit_price(amount: float, price: float) -> Optional[float]:
+def calculate_unit_price(amount: float, price: float) -> float | None:
     """Calculate unit price given amount and total price."""
     logger.debug(f"Calculating unit price: price={price}, amount={amount}")
     if amount <= 0:
@@ -70,13 +70,24 @@ FONT_SETTINGS_PATH = (
 )
 
 
-def load_font_settings():
+class FontSettings(TypedDict):
+    """Persisted PDF font size settings."""
+
+    price_font_size: int
+    text_font_size: int
+
+
+def load_font_settings() -> FontSettings:
     try:
         with open(FONT_SETTINGS_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
+            raw: dict[str, int] = json.load(f)
+            return FontSettings(
+                price_font_size=raw.get("price_font_size", 32),
+                text_font_size=raw.get("text_font_size", 14),
+            )
     except Exception as e:
-        logger.error(f"Failed to load font settings: {e}", exc_info=True)
-        return {"price_font_size": 32, "text_font_size": 14}
+        logger.error("Failed to load font settings: %s", e, exc_info=True)
+        return FontSettings(price_font_size=32, text_font_size=14)
 
 
 def save_font_settings(price_font_size: int, text_font_size: int) -> None:

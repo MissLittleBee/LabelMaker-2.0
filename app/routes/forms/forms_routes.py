@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from flask import Blueprint, jsonify, render_template, request
 from flask.typing import ResponseReturnValue
@@ -28,7 +29,7 @@ def _get_sorted_forms(sort_by: str) -> list[Form]:
         List of Form records in requested order.
     """
     column = _FORM_SORT_COLUMNS.get(sort_by, Form.name)
-    return Form.query.order_by(column.asc()).all()
+    return cast(list[Form], Form.query.order_by(column.asc()).all())
 
 
 @bp.route("/forms", methods=["GET"])

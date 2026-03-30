@@ -4,6 +4,8 @@ import webbrowser
 from pathlib import Path
 from threading import Timer
 
+from flask import Flask
+
 from app import create_app
 from app.db import db
 
@@ -20,18 +22,18 @@ if getattr(sys, "frozen", False):
     # Path where the .exe is located
     base_dir = Path(sys.executable).parent
     # Path where bundled files (templates/static) are temporarily extracted
-    bundle_dir = Path(sys._MEIPASS)
+    bundle_dir = Path(getattr(sys, "_MEIPASS", ""))
 else:
     base_dir = Path(__file__).parent
     bundle_dir = base_dir
 
 
-def open_browser():
+def open_browser() -> None:
     """Opens the default web browser after a short delay."""
     webbrowser.open_new("http://127.0.0.1:5000/")
 
 
-def setup_app():
+def setup_app() -> Flask:
     """Prepare and return the app instance with correct paths."""
     db_path = base_dir / "instance" / "labelmaker.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -46,7 +48,7 @@ def setup_app():
     return app
 
 
-def main():
+def main() -> None:
     logger.info("Starting LabelMaker 2.0...")
 
     try:
