@@ -1,12 +1,13 @@
 import logging
 from pathlib import Path
+from typing import Optional
 
 from flask import Flask
 
 from app.central_logging import setup_logging
 
 
-def create_app() -> Flask:
+def create_app(database_uri: Optional[str] = None) -> Flask:
     """Create and configure the LabelMaker Flask application.
 
     Returns:
@@ -14,6 +15,7 @@ def create_app() -> Flask:
     """
     # import db lazily to avoid circular import during module import
     from app.db import db
+
     # Set template and static folders to project root, not app package
     template_dir = Path(__file__).parent.parent / "templates"
     static_dir = Path(__file__).parent.parent / "static"
@@ -21,7 +23,10 @@ def create_app() -> Flask:
         __name__, template_folder=str(template_dir), static_folder=str(static_dir)
     )
     from app.config import Config
+
     app.config.from_object(Config)
+    if database_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 
     # Setup logging
     setup_logging(app)
@@ -35,7 +40,7 @@ def create_app() -> Flask:
         db_path = db_uri.replace("sqlite:///", "")
         db_file = Path(db_path)
         db_file.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Database directory ensured: {db_file.parent}")
+        logger.info("Database directory ensured: %s", db_file.parent)
 
     # Initialize database
     db.init_app(app)

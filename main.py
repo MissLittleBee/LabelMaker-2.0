@@ -35,14 +35,13 @@ def setup_app():
     """Prepare and return the app instance with correct paths."""
     db_path = base_dir / "instance" / "labelmaker.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    database_uri = f"sqlite:///{db_path}"
 
-    # Force database URI to point to the file next to EXE
-    app = create_app()
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    app = create_app(database_uri=database_uri)
 
     with app.app_context():
         db.create_all()
-        logger.info(f"✓ Database ready at: {db_path}")
+        logger.info("✓ Database ready at: %s", db_path)
 
     return app
 

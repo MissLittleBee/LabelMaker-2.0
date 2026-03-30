@@ -61,9 +61,9 @@ def _setup_app() -> "Flask":
 
     db_path = base_dir / "instance" / "labelmaker.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
+    database_uri = f"sqlite:///{db_path}"
 
-    app = create_app()
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    app = create_app(database_uri=database_uri)
 
     with app.app_context():
         db.create_all()

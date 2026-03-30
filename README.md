@@ -83,7 +83,8 @@ The `.env` file and all logs in `instance/logs/` are git-ignored for security an
 
 - `main.py` — Main entry point for running the app.
 - `build_exe.py` — Script to build a Windows EXE using PyInstaller.
-- `launcher_tray.py`, `launcher.py`, `LabelMaker.spec`, `label_maker.spec` — Placeholders for EXE/tray integration (currently empty or not used directly).
+- `launcher_tray.py` — System tray launcher used by the Windows EXE.
+- `launcher.py` — Compatibility entry point that forwards to `launcher_tray.py`.
 
 ## 🖨️ Usage
 
@@ -151,8 +152,8 @@ python build_exe.py
 ### How it works
 - **One-file bundle**: All Python code, templates, and static files embedded in the EXE
 - **Auto-launch**: Double-clicking opens the app in default browser, starts Flask server
-- **System tray**: (Planned) Icon in Windows system tray to control and close the app
-- **Persistent data**: Database stored in `%APPDATA%\LabelMaker\instance\` (survives reinstalls)
+- **System tray**: Icon in Windows system tray to reopen browser or quit app
+- **Persistent data**: Database stored in `instance/labelmaker.db` next to the EXE
 
 
 ### Distribution
