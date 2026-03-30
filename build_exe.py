@@ -44,6 +44,7 @@ PyInstaller.__main__.run(
         "--hidden-import=PIL",  # PIL for system tray icon
         "--hidden-import=PIL.Image",
         "--hidden-import=PIL.ImageDraw",
+        "--hidden-import=dotenv",  # python-dotenv for .env loading
         # Collect all Flask/SQLAlchemy submodules
         "--collect-all=flask",
         "--collect-all=flask_sqlalchemy",
