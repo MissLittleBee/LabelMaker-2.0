@@ -58,7 +58,8 @@ def create_form() -> ResponseReturnValue:
         short_name = data.get("short_name", "").strip()
         unit = data.get("unit", "").strip()
 
-        missing_fields = [f for f in ["name", "short_name", "unit"] if not locals()[f]]
+        fields = {"name": name, "short_name": short_name, "unit": unit}
+        missing_fields = [f for f, v in fields.items() if not v]
         if missing_fields:
             logger.warning(f"Missing required fields: {', '.join(missing_fields)}")
             return jsonify(
@@ -103,7 +104,8 @@ def update_form() -> ResponseReturnValue:
         short_name = data.get("short_name", "").strip()
         unit = data.get("unit", "").strip()
 
-        missing_fields = [f for f in ["name", "short_name", "unit"] if not locals()[f]]
+        fields = {"name": name, "short_name": short_name, "unit": unit}
+        missing_fields = [f for f, v in fields.items() if not v]
         if missing_fields:
             logger.warning(f"Missing required fields: {', '.join(missing_fields)}")
             return jsonify(
