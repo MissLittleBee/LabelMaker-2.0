@@ -1,69 +1,78 @@
+
 # LabelMaker 2.0
 
-Modern web application primary for Czech pharmacy to generate price labels with czech language localization.
+<p align="center">
+   <img src="static/screenshots/sc1.png" alt="LabelMaker Home" width="400"/>
+   <img src="static/screenshots/sc2.png" alt="Label List" width="400"/>
+   <img src="static/screenshots/sc3.png" alt="Form Management" width="400"/>
+   <img src="static/screenshots/sc4.png" alt="PDF Preview" width="400"/>
+</p>
 
-## 🎯 Features
+LabelMaker is a simple, standalone web app for generating price labels, designed for Czech pharmacies. It runs locally, requires no installation, and supports Czech language and PDF export.
 
-- **Label Management** - Create, edit, and delete price labels
-- **Form Management** - Manage pharmaceutical forms (tablets, drops, ointments, ...)
-- **PDF Generation** - Print labels per A4 page (48×35mm, 0mm gaps)
-- **Czech Support** - Full support for Czech characters (č, ř, ž, Č, Ř, Ž)
-- **Smart Text Wrapping** - Automatic wrapping of long product names (max 25 chars/line)
-- **Sorting** - Sort by name, date, or print status
-- **Bulk Operations** - Mark/unmark all labels for printing
+## Features
+- Create, edit, and delete price labels
+- Manage pharmaceutical forms
+- Print labels as PDFs (A4, 48×35mm)
+- Full Czech character support
+- Bulk mark/unmark for printing
 
-## 📋 Requirements
+## Quick Start
+1. Clone the repo:
+   ```bash
+   git clone <repository-url>
+   cd LabelMaker-2.0
+   ```
+2. Create a virtual environment:
+   - Windows:
+     ```bash
+     python -m venv venv
+     venv\Scripts\activate
+     ```
+   - Linux/Mac:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the app:
+   ```bash
+   python main.py
+   ```
+   The app opens at http://127.0.0.1:5000 and stores data in the `instance/` folder.
 
-- Python 3.9 or newer
-- Web browser (Chrome, Firefox, Edge, Safari)
+## Windows EXE
+- Build a standalone EXE with `python build_exe.py` (Windows only)
+- Output: `dist/LabelMaker.exe` (no Python needed for users)
+- Data is persistent in `instance/labelmaker.db` next to the EXE
 
-## 🚀 Instalation
+## Usage
+- Add forms and labels via the web UI
+- Print selected labels as PDF
+- All data is saved locally and persists between runs
 
-### Step 1: clone this repo
+## Troubleshooting
+- Delete `instance/labelmaker.db` to reset data
+- Logs: `instance/logs/labelmaker.log`
+- For port/database changes, edit `.env` or `main.py`
 
-```bash
-git clone <repository-url>
-cd "LabelMaker 2.0"
-```
+## Tech
+- Python 3.9+, Flask, SQLite, SQLAlchemy, ReportLab, JavaScript, CSS
 
-### Step 2: Create venv (recommended)
+## License
+MIT
 
-**Windows:**
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
+Author: Barbora Hůlová
 
-**Linux/Mac:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+## 🗂️ Project Files
 
-### Step 3: Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Step 4: Run the application
-
-```bash
-python main.py
-```
-
-The application will:
-- Start Flask server on **http://127.0.0.1:5000**
-- Automatically open your default browser
-- Create the SQLite database and logs automatically
-
-**Output example:**
-```
-[2026-01-12 20:40:15] INFO     Starting LabelMaker 2.0...
-[2026-01-12 20:40:15] INFO     LabelMaker application initialized successfully
- * Serving Flask app 'app.app'
- * Running on http://127.0.0.1:5000
-```
+- `main.py` — Main entry point for running the app.
+- `build_exe.py` — Script to build a Windows EXE using PyInstaller.
+- `launcher_tray.py` — System tray launcher used by the Windows EXE.
+- `launcher.py` — Compatibility entry point that forwards to `launcher_tray.py`.
 
 ## 🖨️ Usage
 
@@ -103,6 +112,7 @@ The application will:
 - **Frontend**: Vanilla JavaScript + CSS
 - **Templating**: Jinja2
 
+
 ## 📦 Windows EXE Version
 
 For creating a standalone Windows EXE file that users can double-click to run:
@@ -121,20 +131,21 @@ venv\Scripts\activate
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Build the EXE
 python build_exe.py
 ```
 
-**Output:** `dist\LabelMaker.exe` (single file, ~150MB)
+**Output:** `dist/LabelMaker.exe` (single file, ~150MB)
+
 
 ### How it works
 - **One-file bundle**: All Python code, templates, and static files embedded in the EXE
 - **Auto-launch**: Double-clicking opens the app in default browser, starts Flask server
-- **System tray**: Icon in Windows system tray to control and close the app
-- **Persistent data**: Database stored in `%APPDATA%\LabelMaker\instance\` (survives reinstalls)
+- **System tray**: Icon in Windows system tray to reopen browser or quit app
+- **Persistent data**: Database stored in `instance/labelmaker.db` next to the EXE
+
 
 ### Distribution
-- Copy `dist\LabelMaker.exe` to users
+- Copy `dist/LabelMaker.exe` to users
 - No Python installation required on user's PC
 - Works on Windows 7+ (with modern OS)
 
@@ -231,6 +242,7 @@ pip install -r requirements.txt --force-reinstall
 - Delete `build/` and `dist/` folders and try again
 - Check that all dependencies are installed: `pip install -r requirements.txt`
 
+
 ## 📝 Database Schema
 
 ### Table: `label` (Price Labels)
@@ -248,6 +260,7 @@ pip install -r requirements.txt --force-reinstall
 - `short_name` - Abbreviation (unique)
 - `unit` - Unit (ks, ml, g, ...)
 
+
 ## 🤝 Contributing
 
 1. Fork the project
@@ -256,9 +269,11 @@ pip install -r requirements.txt --force-reinstall
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Open a Pull Request
 
+
 ## 📄 License
 
 MIT
+
 
 ## 👨‍💻 Author
 
@@ -267,4 +282,4 @@ Barbora Hůlová
 ---
 
 **Version**: 2.0  
-**Date**: December 2025  
+**Date**: March 2026  

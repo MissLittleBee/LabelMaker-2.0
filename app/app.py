@@ -1,20 +1,21 @@
 import logging
 from pathlib import Path
+from typing import Optional
 
 from flask import Flask
 
 from app.central_logging import setup_logging
 
 
-def create_app():
+def create_app(database_uri: Optional[str] = None) -> Flask:
+    """Create and configure the LabelMaker Flask application.
+
+    Returns:
+        Flask app instance.
+    """
     # import db lazily to avoid circular import during module import
     from app.db import db
 
-    """
-    LabelMaker - A small web app for generating price labels.
-    Returns:
-        Flask app instance
-    """
     # Set template and static folders to project root, not app package
     template_dir = Path(__file__).parent.parent / "templates"
     static_dir = Path(__file__).parent.parent / "static"
@@ -22,7 +23,10 @@ def create_app():
         __name__, template_folder=str(template_dir), static_folder=str(static_dir)
     )
     from app.config import Config
+
     app.config.from_object(Config)
+    if database_uri:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 
     # Setup logging
     setup_logging(app)
@@ -36,7 +40,7 @@ def create_app():
         db_path = db_uri.replace("sqlite:///", "")
         db_file = Path(db_path)
         db_file.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Database directory ensured: {db_file.parent}")
+        logger.info("Database directory ensured: %s", db_file.parent)
 
     # Initialize database
     db.init_app(app)
@@ -61,6 +65,20 @@ def create_app():
     app.register_blueprint(labels_bp)
     logger.debug("Registered 'labels' blueprint")
     logger.info("All blueprints registered successfully")
+
+    # Register Jinja2 template filters for Czech number formatting
+    @app.template_filter("czech_number")
+    def czech_number_filter(value: float, decimals: int = 2) -> str:
+        if value == int(value):
+            return str(int(value))
+        formatted = f"{value:.{decimals}f}".rstrip("0").rstrip(".")
+        return formatted.replace(".", ",")
+
+    @app.template_filter("czech_price")
+    def czech_price_filter(value: float) -> str:
+        if value == int(value):
+            return f"{int(value)},-"
+        return f"{value:.2f}".replace(".", ",")
 
     logger.info("LabelMaker application initialized successfully")
     return app

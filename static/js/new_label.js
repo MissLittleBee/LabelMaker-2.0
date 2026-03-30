@@ -29,7 +29,7 @@ async function handleSubmit(event) {
     };
 
     try {
-        const response = await fetch('/api/label', {
+        const response = await fetch('/labels/api/label', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -54,35 +54,4 @@ async function handleSubmit(event) {
     }
 }
 
-// Show notification with toast
-function showNotification(message, type) {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-message">${message}</span>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// Show notification with toast — provided by shared.js (showNotification)

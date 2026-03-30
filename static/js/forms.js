@@ -46,13 +46,15 @@ async function loadForms() {
     } catch (error) {
         console.error('Error loading forms:', error);
         const tbody = document.getElementById('formsTableBody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align: center; color: #dc3545;">
-                    ❌ Chyba při načítání dat: ${error.message}
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML = '';
+        const errorRow = document.createElement('tr');
+        const errorCell = document.createElement('td');
+        errorCell.colSpan = 4;
+        errorCell.style.textAlign = 'center';
+        errorCell.style.color = '#dc3545';
+        errorCell.textContent = '❌ Chyba při načítání dat: ' + error.message;
+        errorRow.appendChild(errorCell);
+        tbody.appendChild(errorRow);
     }
 }
 
@@ -72,7 +74,7 @@ function createFormRow(form) {
     tr.innerHTML = `
         <td><strong>${escapeHtml(form.name)}</strong></td>
         <td><code>${escapeHtml(form.short_name)}</code></td>
-        <td>${unitDisplay[form.unit] || form.unit}</td>
+        <td>${unitDisplay[form.unit] || escapeHtml(form.unit)}</td>
         <td>
             <div class="table-actions">
                 <button class="btn btn-small btn-primary" onclick="openEditModal('${escapeHtml(form.name)}')">
@@ -203,7 +205,8 @@ async function confirmDelete() {
             loadForms();
             showNotification('Forma byla smazána', 'success');
         } else {
-            alert('Chyba: ' + (data.error || 'Neznámá chyba'));
+            closeDeleteModal();
+            showNotification(data.error || 'Nezn\u00e1m\u00e1 chyba', 'error');
         }
 
     } catch (error) {
@@ -212,45 +215,9 @@ async function confirmDelete() {
     }
 }
 
-// Show notification with toast
-function showNotification(message, type) {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
+// Show notification with toast — provided by shared.js (showNotification)
 
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-message">${message}</span>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// Escape HTML to prevent XSS — provided by shared.js (escapeHtml)
 
 // Close modal when clicking outside
 window.onclick = function (event) {

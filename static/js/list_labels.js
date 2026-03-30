@@ -19,7 +19,7 @@ async function loadLabels() {
         const urlParams = new URLSearchParams(window.location.search);
         const sortBy = urlParams.get('sort') || 'name';
 
-        const response = await fetch(`/api/labels?sort=${sortBy}`);
+        const response = await fetch(`/labels/api/labels?sort=${sortBy}`);
         const data = await response.json();
 
         allLabels = data.labels || [];
@@ -63,9 +63,9 @@ function createLabelRow(label) {
     tr.innerHTML = `
         <td><strong>${escapeHtml(label.product_name)}</strong></td>
         <td>${escapeHtml(label.form)}</td>
-        <td>${label.amount}</td>
-        <td>${label.price} Kč</td>
-        <td>${label.unit_price} Kč</td>
+        <td>${formatCzechNumber(label.amount)}</td>
+        <td>${formatCzechPrice(label.price)}</td>
+        <td>${formatCzechNumber(label.unit_price, 2)} Kč</td>
         <td class="print-toggle-container">
             <label class="print-toggle">
                 <input type="checkbox" ${label.marked_to_print ? 'checked' : ''} onchange="togglePrintMark(${label.id})">
@@ -113,7 +113,7 @@ function filterLabels() {
 // Toggle print mark for a label
 async function togglePrintMark(labelId) {
     try {
-        const response = await fetch(`/api/label/${labelId}/toggle-print`, {
+        const response = await fetch(`/labels/api/label/${labelId}/toggle-print`, {
             method: 'POST'
         });
 
@@ -174,7 +174,7 @@ async function handleEditSubmit(event) {
     };
 
     try {
-        const response = await fetch(`/api/label/${labelId}`, {
+        const response = await fetch(`/labels/api/label/${labelId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -215,7 +215,7 @@ async function confirmDelete() {
     if (!deleteLabelId) return;
 
     try {
-        const response = await fetch(`/api/label/${deleteLabelId}`, {
+        const response = await fetch(`/labels/api/label/${deleteLabelId}`, {
             method: 'DELETE'
         });
 
@@ -234,40 +234,9 @@ async function confirmDelete() {
     }
 }
 
-// Show notification with toast
-function showNotification(message, type) {
-    let toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
+// Show notification with toast — provided by shared.js (showNotification)
 
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-    toast.innerHTML = `
-        <span class="toast-icon">${icon}</span>
-        <span class="toast-message">${message}</span>
-    `;
-
-    toastContainer.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// Escape HTML to prevent XSS — provided by shared.js (escapeHtml)
 
 // Close modal when clicking outside
 window.onclick = function (event) {
