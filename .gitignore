@@ -5,8 +5,6 @@ __pycache__/
 *.so
 *.egg
 *.egg-info/
-dist/
-build/
 *.whl
 .Python
 *.pyc
@@ -26,8 +24,8 @@ venv.bak/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
+*.sublime-workspace
+*.sublime-project
 
 # Database & Instance Data
 instance/
@@ -38,8 +36,6 @@ database/
 
 # Logs
 *.log
-plan.md
-web-inspiration.png
 logs/
 
 # Environment variables
@@ -74,13 +70,11 @@ htmlcov/
 # Temporary files
 *.tmp
 *.bak
-*.swp
 *~.nib
 .#*
 
-# IDEs temporary files
-*.sublime-workspace
-*.sublime-project
-
-#AI
+# Project-specific
+plan.md
+web-inspiration.png
 AGENTS.md
+CLAUDE.md

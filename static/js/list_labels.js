@@ -63,9 +63,9 @@ function createLabelRow(label) {
     tr.innerHTML = `
         <td><strong>${escapeHtml(label.product_name)}</strong></td>
         <td>${escapeHtml(label.form)}</td>
-        <td>${label.amount}</td>
-        <td>${label.price} Kč</td>
-        <td>${label.unit_price} Kč</td>
+        <td>${formatCzechNumber(label.amount)}</td>
+        <td>${formatCzechPrice(label.price)}</td>
+        <td>${formatCzechNumber(label.unit_price, 2)} Kč</td>
         <td class="print-toggle-container">
             <label class="print-toggle">
                 <input type="checkbox" ${label.marked_to_print ? 'checked' : ''} onchange="togglePrintMark(${label.id})">
@@ -234,47 +234,9 @@ async function confirmDelete() {
     }
 }
 
-// Show notification with toast
-function showNotification(message, type) {
-    let toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
+// Show notification with toast — provided by shared.js (showNotification)
 
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'toast-icon';
-    iconSpan.textContent = icon;
-
-    const messageSpan = document.createElement('span');
-    messageSpan.className = 'toast-message';
-    messageSpan.textContent = message;
-
-    toast.appendChild(iconSpan);
-    toast.appendChild(messageSpan);
-
-    toastContainer.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// Escape HTML to prevent XSS — provided by shared.js (escapeHtml)
 
 // Close modal when clicking outside
 window.onclick = function (event) {

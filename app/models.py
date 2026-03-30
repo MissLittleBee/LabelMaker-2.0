@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Dict
 
 from app.db import db
@@ -19,7 +19,7 @@ class Label(db.Model):
     price = db.Column(db.Float, nullable=False)
     unit_price = db.Column(db.Float, nullable=True)
     marked_to_print = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     # Unique constraint on combination
     __table_args__ = (

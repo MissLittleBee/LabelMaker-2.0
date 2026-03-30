@@ -150,7 +150,7 @@ class TestFontSettings:
     def test_valid_font_settings(self, client) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
-            json={"price_font_size": 30, "text_font_size": 14},
+            json={"price_font_size": 32, "text_font_size": 11},
         )
         assert resp.status_code == 200
 

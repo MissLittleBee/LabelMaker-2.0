@@ -1,114 +1,109 @@
-<!DOCTYPE html>
-<html lang="cs">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domů - LabelMaker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-</head>
+{% block title %}Domů - LabelMaker{% endblock %}
 
-<body>
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <h1>🏥 LabelMaker</h1>
-        </div>
-        <div class="nav-menu">
-            <a href="/" class="nav-item active">
-                <span class="nav-item-icon">🏠</span>
-                <span class="nav-item-text">Domů</span>
-            </a>
-            <a href="/labels" class="nav-item">
-                <span class="nav-item-icon">🏷️</span>
-                <span class="nav-item-text">Cenovky</span>
-            </a>
-            <a href="/labels/new" class="nav-item">
-                <span class="nav-item-icon">➕</span>
-                <span class="nav-item-text">Nová cenovka</span>
-            </a>
-            <a href="/labels/print" class="nav-item">
-                <span class="nav-item-icon">🖨️</span>
-                <span class="nav-item-text">Tisk cenovek</span>
-            </a>
-            <a href="/forms" class="nav-item">
-                <span class="nav-item-icon">📦</span>
-                <span class="nav-item-text">Lékové formy</span>
-            </a>
-        </div>
-    </nav>
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">💊 LabelMaker 2.0</h1>
+        <p class="hero-subtitle">Správa a tisk cenovek</p>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Hero Section -->
-        <div class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">🏥 LabelMaker 2.0</h1>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="/labels/print" class="quick-action-card">
+            <div class="quick-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                </svg>
             </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <a href="/labels/print" class="quick-action-card primary">
-                    <div class="quick-action-icon">🖨️</div>
-                    <div class="quick-action-content">
-                        <h3>Tisk cenovek</h3>
-                        <p>Vytiskněte připravené cenovky</p>
-                    </div>
-                    <div class="quick-action-arrow">→</div>
-                </a>
-
-                <a href="/labels/new" class="quick-action-card success">
-                    <div class="quick-action-icon">➕</div>
-                    <div class="quick-action-content">
-                        <h3>Nová cenovka</h3>
-                        <p>Vytvořte nový cenová cenovka</p>
-                    </div>
-                    <div class="quick-action-arrow">→</div>
-                </a>
+            <div class="quick-action-content">
+                <h3>Tisk cenovek</h3>
+                <p>Vytiskněte připravené cenovky</p>
             </div>
+            <div class="quick-action-arrow">→</div>
+        </a>
 
-            <!-- Main Cards -->
-            <div class="feature-grid">
-                <a href="/labels" class="feature-card">
-                    <div class="feature-card-header">
-                        <div class="feature-icon">🏷️</div>
-                        <h3>Správa cenovek</h3>
-                    </div>
-                    <p class="feature-description">Správa cenovek v databázi</p>
-                </a>
-
-                <a href="/forms" class="feature-card">
-                    <div class="feature-card-header">
-                        <div class="feature-icon">📦</div>
-                        <h3>Lékové formy</h3>
-                    </div>
-                    <p class="feature-description">Správa lékových forem</p>
-                </a>
-
-                <a href="/labels?filter=marked" class="feature-card">
-                    <div class="feature-card-header">
-                        <div class="feature-icon">✓</div>
-                        <h3>Označené k tisku</h3>
-                    </div>
-                    <p class="feature-description">Rychlý přehled cenovek připravených k vytištění</p>
-                </a>
-
-                <a href="/labels?sort=recent" class="feature-card">
-                    <div class="feature-card-header">
-                        <div class="feature-icon">🕐</div>
-                        <h3>Nedávné</h3>
-                    </div>
-                    <p class="feature-description">Zobrazit naposledyupravené cenovky</p>
-                    <div class="feature-badge">
-                    </div>
-                </a>
+        <a href="/labels/new" class="quick-action-card">
+            <div class="quick-action-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
             </div>
-
-            <!-- Footer -->
-            <div class="home-footer">
-                <p>LabelMaker 2.0 © 2025 | Aplikace pro správu cenovek</p>
+            <div class="quick-action-content">
+                <h3>Nová cenovka</h3>
+                <p>Vytvořte novou cenovku</p>
             </div>
-    </main>
-</body>
+            <div class="quick-action-arrow">→</div>
+        </a>
+    </div>
 
-</html>
+    <!-- Main Cards -->
+    <div class="feature-grid">
+        <a href="/labels" class="feature-card">
+            <div class="feature-card-header">
+                <div class="feature-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                        <line x1="7" y1="7" x2="7.01" y2="7" />
+                    </svg>
+                </div>
+                <h3>Správa cenovek</h3>
+            </div>
+            <p class="feature-description">Správa cenovek v databázi</p>
+        </a>
+
+        <a href="/forms" class="feature-card">
+            <div class="feature-card-header">
+                <div class="feature-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    </svg>
+                </div>
+                <h3>Lékové formy</h3>
+            </div>
+            <p class="feature-description">Správa lékových forem</p>
+        </a>
+
+        <a href="/labels?sort=marked" class="feature-card">
+            <div class="feature-card-header">
+                <div class="feature-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 11 12 14 22 4" />
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                </div>
+                <h3>Označené k tisku</h3>
+            </div>
+            <p class="feature-description">Přehled cenovek připravených k vytištění</p>
+        </a>
+
+        <a href="/labels?sort=date" class="feature-card">
+            <div class="feature-card-header">
+                <div class="feature-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                </div>
+                <h3>Nedávné</h3>
+            </div>
+            <p class="feature-description">Zobrazit naposledy upravené cenovky</p>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="home-footer">
+        <p>LabelMaker 2.0 © 2025</p>
+    </div>
+</div>
+{% endblock %}

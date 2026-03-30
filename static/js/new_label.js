@@ -54,42 +54,4 @@ async function handleSubmit(event) {
     }
 }
 
-// Show notification with toast
-function showNotification(message, type) {
-    // Create toast container if it doesn't exist
-    let toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toastContainer';
-        toastContainer.className = 'toast-container';
-        document.body.appendChild(toastContainer);
-    }
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
-
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'toast-icon';
-    iconSpan.textContent = icon;
-
-    const messageSpan = document.createElement('span');
-    messageSpan.className = 'toast-message';
-    messageSpan.textContent = message;
-
-    toast.appendChild(iconSpan);
-    toast.appendChild(messageSpan);
-
-    toastContainer.appendChild(toast);
-
-    // Trigger animation
-    setTimeout(() => toast.classList.add('show'), 10);
-
-    // Remove after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+// Show notification with toast — provided by shared.js (showNotification)

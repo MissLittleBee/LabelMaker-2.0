@@ -21,4 +21,4 @@ def health() -> ResponseReturnValue:
 def index() -> str:
     """Home page with main options."""
     logger.info("Rendering home page")
-    return render_template("home.html")
+    return render_template("home.html", active_page="home")

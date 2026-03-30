@@ -1,151 +1,117 @@
-<!DOCTYPE html>
-<html lang="cs">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Správa Forem - LabelMaker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-</head>
+{% block title %}Správa Forem - LabelMaker{% endblock %}
 
-<body>
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <h1>🏥 LabelMaker</h1>
+{% block content %}
+<div class="page-header">
+    <h1>Správa lékových forem</h1>
+    <p>Spravujte lékové formy produktů</p>
+</div>
+
+<div class="container">
+    <div class="action-bar">
+        <div class="filters">
+            <select id="sortSelect" class="filter-select" onchange="window.location.href='/forms?sort=' + this.value">
+                <option value="name" {% if sort_by=='name' %}selected{% endif %}>Název A-Z</option>
+                <option value="short" {% if sort_by=='short' %}selected{% endif %}>Zkratka A-Z</option>
+            </select>
         </div>
-        <div class="nav-menu">
-            <a href="/" class="nav-item">
-                <span class="nav-item-icon">🏠</span>
-                <span class="nav-item-text">Domů</span>
-            </a>
-            <a href="/labels" class="nav-item">
-                <span class="nav-item-icon">🏷️</span>
-                <span class="nav-item-text">Cenovky</span>
-            </a>
-            <a href="/labels/new" class="nav-item">
-                <span class="nav-item-icon">➕</span>
-                <span class="nav-item-text">Nová cenovka</span>
-            </a>
-            <a href="/labels/print" class="nav-item">
-                <span class="nav-item-icon">🖨️</span>
-                <span class="nav-item-text">Tisk cenovek</span>
-            </a>
-            <a href="/forms" class="nav-item active">
-                <span class="nav-item-icon">📦</span>
-                <span class="nav-item-text">Lékové formy</span>
-            </a>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="page-header">
-            <h1>📦 Správa lékových forem</h1>
-            <p>Spravujte lékové formy produktů</p>
-        </div>
-
-        <div class="container">
-            <div class="action-bar">
-                <div class="filters">
-                    <select id="sortSelect" class="filter-select"
-                        onchange="window.location.href='/forms?sort=' + this.value">
-                        <option value="name" {% if sort_by=='name' %}selected{% endif %}>📝 Název A-Z</option>
-                        <option value="short" {% if sort_by=='short' %}selected{% endif %}>🔤 Zkratka A-Z</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="openCreateModal()">
-                    ➕ Vytvořit novou formu
-                </button>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Název formy</th>
-                            <th>Zkratka</th>
-                            <th>Jednotka</th>
-                            <th>Akce</th>
-                        </tr>
-                    </thead>
-                    <tbody id="formsTableBody">
-                        <!-- Forms will be loaded here via JavaScript -->
-                        <tr class="loading-row">
-                            <td colspan="4">Načítám data...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <div class="empty-icon">📭</div>
-                <p>Zatím nemáte žádné formy.</p>
-                <button class="btn btn-primary" onclick="openCreateModal()">
-                    Vytvořit první formu
-                </button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Create/Edit Modal -->
-    <div id="formModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Vytvořit novou formu</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <form id="formForm" onsubmit="handleSubmit(event)">
-                <div class="form-group">
-                    <label for="formName">Název formy *</label>
-                    <input type="text" id="formName" name="name" required placeholder="např. Kapsle">
-                </div>
-
-                <div class="form-group">
-                    <label for="formShortName">Zkratka *</label>
-                    <input type="text" id="formShortName" name="short_name" required placeholder="např. cps">
-                </div>
-
-                <div class="form-group">
-                    <label for="formUnit">Jednotka *</label>
-                    <input type="text" id="formUnit" name="unit" required placeholder="např. ks">
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-danger" onclick="closeModal()">
-                        Zrušit
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        Vytvořit
-                    </button>
-                </div>
-            </form>
-        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            + Vytvořit novou formu
+        </button>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2>Potvrdit smazání</h2>
-                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Název formy</th>
+                    <th>Zkratka</th>
+                    <th>Jednotka</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody id="formsTableBody">
+                <tr class="loading-row">
+                    <td colspan="4">Načítám data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                opacity="0.4">
+                <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            </svg>
+        </div>
+        <p>Zatím nemáte žádné formy.</p>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            Vytvořit první formu
+        </button>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="formModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Vytvořit novou formu</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="formForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label for="formName">Název formy *</label>
+                <input type="text" id="formName" name="name" required placeholder="např. Kapsle">
             </div>
-            <div class="modal-body">
-                <p>Opravdu chcete smazat lékovou formu "<span id="deleteFormName"></span>"?</p>
-                <p class="warning-text">⚠️ Tato akce je nevratná!</p>
+
+            <div class="form-group">
+                <label for="formShortName">Zkratka *</label>
+                <input type="text" id="formShortName" name="short_name" required placeholder="např. cps">
             </div>
+
+            <div class="form-group">
+                <label for="formUnit">Jednotka *</label>
+                <input type="text" id="formUnit" name="unit" required placeholder="např. ks">
+            </div>
+
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                <button type="button" class="btn btn-danger" onclick="closeModal()">
                     Zrušit
                 </button>
-                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                    Smazat
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    Vytvořit
                 </button>
             </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h2>Potvrdit smazání</h2>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Opravdu chcete smazat lékovou formu "<span id="deleteFormName"></span>"?</p>
+            <p class="warning-text">⚠️ Tato akce je nevratná!</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                Zrušit
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                Smazat
+            </button>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script src="{{ url_for('static', filename='js/forms.js') }}"></script>
-</body>
-
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forms.js') }}"></script>
+{% endblock %}

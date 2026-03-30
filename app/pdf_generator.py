@@ -13,6 +13,20 @@ from reportlab.pdfgen import canvas as pdf_canvas
 logger = logging.getLogger(__name__)
 
 
+def _format_czech_number(value: float, decimals: int = 2) -> str:
+    """Format a number for Czech display: comma decimal separator, strip trailing zeros."""
+    if value == int(value):
+        return str(int(value))
+    return f"{value:.{decimals}f}".rstrip("0").rstrip(".").replace(".", ",")
+
+
+def _format_czech_price(value: float) -> str:
+    """Format price for Czech labels: '352,-' for whole, '29,90' for decimals."""
+    if value == int(value):
+        return f"{int(value)},-"
+    return f"{value:.2f}".replace(".", ",")
+
+
 def get_font_path(font_name: str) -> str:
     """Find path to font."""
     if getattr(sys, "frozen", False):
@@ -56,7 +70,7 @@ class LabelPDFGenerator:
 
     # Page margins
     MARGIN_LEFT = 6 * mm
-    MARGIN_TOP = 6 * mm
+    MARGIN_TOP = 8 * mm
     MARGIN_BETWEEN = 0 * mm  # No space between labels - they share borders
 
     def __init__(self) -> None:
@@ -97,7 +111,7 @@ class LabelPDFGenerator:
         return positions
 
     # Padding inside label boundary
-    LABEL_PADDING = 1.5 * mm
+    LABEL_PADDING = 2.5 * mm
     # Maximum iterations for auto-fit loop
     _MAX_SHRINK_ITERATIONS = 20
     _MIN_FONT_SIZE = 5
@@ -170,16 +184,16 @@ class LabelPDFGenerator:
         text_font_size = int(label_data.get("text_font_size", 10))
 
         # --- Zone boundaries (relative to label bottom-left y) ---
-        top_zone_top = y + self.LABEL_HEIGHT
+        top_zone_top = y + self.LABEL_HEIGHT - self.LABEL_PADDING
         top_zone_bottom = y + self.LABEL_HEIGHT * 0.70
         mid_zone_top = top_zone_bottom
         mid_zone_bottom = y + self.LABEL_HEIGHT * 0.30
         bot_zone_top = mid_zone_bottom
-        bot_zone_bottom = y
+        bot_zone_bottom = y + self.LABEL_PADDING
 
         # === TOP ZONE: Product name + form info ===
         pdf_canvas.setFillColorRGB(0, 0, 0)
-        form_info = f"{form} {amount:.0f} {unit}"
+        form_info = f"{form} {_format_czech_number(amount)} {unit}"
         MAX_CHARS_PER_LINE = 25
 
         if len(product_name) <= MAX_CHARS_PER_LINE:
@@ -216,7 +230,7 @@ class LabelPDFGenerator:
             start_y -= line_height
 
         # === MIDDLE ZONE: Large price ===
-        price_text = f"{label_data['price']:.0f},-"
+        price_text = _format_czech_price(label_data["price"])
         fitted_price_size = self._fit_text_width(
             pdf_canvas, price_text, FONT_BOLD, price_font_size, usable_width
         )

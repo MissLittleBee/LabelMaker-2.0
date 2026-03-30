@@ -57,7 +57,7 @@ PyInstaller.__main__.run(
     ]
 )
 
-print("\n" + "=" * 70)
+print("\n" + "=" * 10)
 print("✅ Build complete!")
 print(f"📦 Single EXE file: {script_dir / 'dist' / 'LabelMaker.exe'}")
 print("\n📝 Distribution:")

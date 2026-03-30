@@ -1,116 +1,73 @@
-<!DOCTYPE html>
-<html lang="cs">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nová cenovka - LabelMaker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-</head>
+{% block title %}Nová cenovka - LabelMaker{% endblock %}
 
-<body>
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <h1>🏥 LabelMaker</h1>
-        </div>
-        <div class="nav-menu">
-            <a href="/" class="nav-item">
-                <span class="nav-item-icon">🏠</span>
-                <span class="nav-item-text">Domů</span>
-            </a>
-            <a href="/labels" class="nav-item">
-                <span class="nav-item-icon">🏷️</span>
-                <span class="nav-item-text">Cenovky</span>
-            </a>
-            <a href="/labels/new" class="nav-item active">
-                <span class="nav-item-icon">➕</span>
-                <span class="nav-item-text">Nová cenovka</span>
-            </a>
-            <a href="/labels/print" class="nav-item">
-                <span class="nav-item-icon">🖨️</span>
-                <span class="nav-item-text">Tisk cenovek</span>
-            </a>
-            <a href="/forms" class="nav-item">
-                <span class="nav-item-icon">📦</span>
-                <span class="nav-item-text">Lékové formy</span>
-            </a>
-        </div>
-    </nav>
+{% block content %}
+<div class="page-header">
+    <h1>Nová cenovka</h1>
+    <p>Vytvořte novou cenovku</p>
+</div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="page-header">
-            <h1>🏷️ Nová cenovka</h1>
-            <p>Vytvořte novou cenovku</p>
+<div class="container">
+    <form id="labelForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+            <label for="productName">Název produktu *</label>
+            <input type="text" id="productName" name="product_name" required placeholder="např. Erdomed">
         </div>
 
-        <div class="container">
-            <form id="labelForm" onsubmit="handleSubmit(event)">
-                <div class="form-group">
-                    <label for="productName">Název produktu *</label>
-                    <input type="text" id="productName" name="product_name" required placeholder="např. Erdomed">
-                </div>
-
-                <div class="form-group">
-                    <label for="form">Léková forma *</label>
-                    <select id="form" name="form" required>
-                        <option value="">-- Vyberte formu --</option>
-                        {% for form in forms %}
-                        <option value="{{ form.short_name }}">
-                            {{ form.name }} ({{ form.short_name }}) - {{ form.unit }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    {% if not forms %}
-                    <p style="color: #dc3545; margin-top: 5px;">
-                        ⚠️ Nejsou k dispozici žádné formy. <a href="/forms">Vytvořte formu</a> nejprve.
-                    </p>
-                    {% endif %}
-                </div>
-
-
-                <div class="form-group">
-                    <label for="amount">Množství *</label>
-                    <input type="number" id="amount" name="amount" step="0.01" min="0" required placeholder="např. 30">
-                </div>
-
-                <div class="form-group">
-                    <label for="price">Cena (Kč) *</label>
-                    <input type="number" id="price" name="price" step="0.01" min="0" required placeholder="např. 29.90">
-                </div>
-
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                        <div class="print-toggle">
-                            <input type="checkbox" id="markedToPrint" name="marked_to_print">
-                            <span class="print-toggle-slider"></span>
-                        </div>
-                        <span>Označit k tisku</span>
-                    </label>
-                </div>
-
-                <div class="form-group"
-                    style="background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%); padding: 20px; border-radius: var(--radius); border: 2px solid var(--primary-light);">
-                    <p style="font-size: 1.1em; color: var(--text-primary);"><strong>Jednotková cena:</strong> <span
-                            id="unitPriceDisplay" style="color: var(--primary); font-weight: 700; font-size: 1.3em;">--
-                            Kč</span></p>
-                    <p style="font-size: 0.9em; color: var(--text-secondary); margin-top: 8px;">
-                        💡 Vypočítá se automaticky z ceny a množství
-                    </p>
-                </div>
-
-                <div class="modal-actions">
-                    <a href="/" class="btn btn-danger">Zrušit</a>
-                    <button type="submit" class="btn btn-primary">
-                        ✓ Vytvořit cenovku
-                    </button>
-                </div>
-            </form>
+        <div class="form-group">
+            <label for="form">Léková forma *</label>
+            <select id="form" name="form" required>
+                <option value="">-- Vyberte formu --</option>
+                {% for form in forms %}
+                <option value="{{ form.short_name }}">
+                    {{ form.name }} ({{ form.short_name }}) - {{ form.unit }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if not forms %}
+            <p class="form-warning">
+                ⚠️ Nejsou k dispozici žádné formy. <a href="/forms">Vytvořte formu</a> nejprve.
+            </p>
+            {% endif %}
         </div>
-    </main>
 
-    <script src="{{ url_for('static', filename='js/new_label.js') }}"></script>
-</body>
+        <div class="form-group">
+            <label for="amount">Množství *</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0" required placeholder="např. 30">
+        </div>
 
-</html>
+        <div class="form-group">
+            <label for="price">Cena (Kč) *</label>
+            <input type="number" id="price" name="price" step="0.01" min="0" required placeholder="např. 29.90">
+        </div>
+
+        <div class="form-group">
+            <label class="toggle-label">
+                <div class="print-toggle">
+                    <input type="checkbox" id="markedToPrint" name="marked_to_print">
+                    <span class="print-toggle-slider"></span>
+                </div>
+                <span>Označit k tisku</span>
+            </label>
+        </div>
+
+        <div class="unit-price-box">
+            <p class="unit-price-label">Jednotková cena:</p>
+            <p class="unit-price-value" id="unitPriceDisplay">-- Kč</p>
+            <p class="unit-price-hint">Vypočítá se automaticky z ceny a množství</p>
+        </div>
+
+        <div class="modal-actions">
+            <a href="/" class="btn btn-danger">Zrušit</a>
+            <button type="submit" class="btn btn-primary">
+                Vytvořit cenovku
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/new_label.js') }}"></script>
+{% endblock %}
