@@ -1,4 +1,4 @@
-"""Tests for DB integrity — FK pragma enforcement (Bug 6)."""
+"""Tests for DB integrity — FK pragma enforcement"""
 
 import pytest
 
@@ -7,7 +7,7 @@ from app.models import Label
 
 
 class TestSQLiteForeignKeyEnforcement:
-    """Bug 6: PRAGMA foreign_keys = ON is active."""
+    """PRAGMA foreign_keys = ON is active."""
 
     def test_fk_pragma_is_enabled(self, app) -> None:
         """Verify that foreign_keys pragma is ON for new connections."""
