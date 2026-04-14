@@ -76,3 +76,39 @@ function formatCzechPrice(value) {
     }
     return value.toFixed(2).replace('.', ',');
 }
+
+/**
+ * Keep desktop launcher alive only while browser window remains open.
+ */
+(function initAppHeartbeat() {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        return;
+    }
+
+    const sendHeartbeat = () => {
+        const payload = JSON.stringify({ ts: Date.now() });
+
+        if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon('/heartbeat', blob);
+            return;
+        }
+
+        fetch('/heartbeat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true,
+        }).catch(() => {
+            // Heartbeat failures are non-fatal and retried on next interval.
+        });
+    };
+
+    sendHeartbeat();
+    const intervalId = window.setInterval(sendHeartbeat, 5000);
+
+    window.addEventListener('beforeunload', () => {
+        sendHeartbeat();
+        window.clearInterval(intervalId);
+    });
+})();

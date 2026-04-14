@@ -1,13 +1,17 @@
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 
 from flask import Flask
 
 from app.central_logging import setup_logging
 
 
-def create_app(database_uri: Optional[str] = None) -> Flask:
+def create_app(
+    database_uri: Optional[str] = None,
+    on_heartbeat: Optional[Callable[[], None]] = None,
+    shutdown_token: Optional[str] = None,
+) -> Flask:
     """Create and configure the LabelMaker Flask application.
 
     Returns:
@@ -27,6 +31,10 @@ def create_app(database_uri: Optional[str] = None) -> Flask:
     app.config.from_object(Config)
     if database_uri:
         app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
+    if on_heartbeat:
+        app.config["HEARTBEAT_CALLBACK"] = on_heartbeat
+    if shutdown_token:
+        app.config["SHUTDOWN_TOKEN"] = shutdown_token
 
     # Setup logging
     setup_logging(app)
