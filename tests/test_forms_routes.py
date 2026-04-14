@@ -1,10 +1,14 @@
 """Tests for form routes — CRUD + delete protection (Bugs 2, 3, 6)."""
 
+from flask.testing import FlaskClient
+
+from app.models import FormDict, LabelDict
+
 
 class TestCreateForm:
     """POST /api/form."""
 
-    def test_create_form_success(self, client) -> None:
+    def test_create_form_success(self, client: FlaskClient) -> None:
         resp = client.post(
             "/api/form",
             json={"name": "Kapsle", "short_name": "cps", "unit": "ks"},
@@ -13,13 +17,13 @@ class TestCreateForm:
         data = resp.get_json()
         assert data["form"]["short_name"] == "cps"
 
-    def test_create_form_missing_fields(self, client) -> None:
+    def test_create_form_missing_fields(self, client: FlaskClient) -> None:
         resp = client.post("/api/form", json={"name": "Kapsle"})
         assert resp.status_code == 400
         assert "short_name" in resp.get_json()["error"]
 
     def test_create_duplicate_name_returns_friendly_error(
-        self, client, seed_form
+        self, client: FlaskClient, seed_form: FormDict
     ) -> None:
         """Bug 3: Duplicate form name returns Czech error, not raw SQL."""
         resp = client.post(
@@ -33,7 +37,7 @@ class TestCreateForm:
         assert "názvem" in error
 
     def test_create_duplicate_short_name_returns_friendly_error(
-        self, client, seed_form
+        self, client: FlaskClient, seed_form: FormDict
     ) -> None:
         """Bug 3: Duplicate short_name returns Czech error."""
         resp = client.post(
@@ -43,7 +47,7 @@ class TestCreateForm:
         assert resp.status_code == 409
         assert "zkratkou" in resp.get_json()["error"]
 
-    def test_create_form_no_json(self, client) -> None:
+    def test_create_form_no_json(self, client: FlaskClient) -> None:
         resp = client.post("/api/form", content_type="application/json", data="{}")
         assert resp.status_code == 400
 
@@ -51,7 +55,9 @@ class TestCreateForm:
 class TestUpdateForm:
     """PUT /api/form."""
 
-    def test_update_form_success(self, client, seed_form) -> None:
+    def test_update_form_success(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.put(
             "/api/form",
             json={"name": "Tablety", "short_name": "tab", "unit": "ks"},
@@ -59,7 +65,7 @@ class TestUpdateForm:
         assert resp.status_code == 200
         assert resp.get_json()["form"]["short_name"] == "tab"
 
-    def test_update_form_not_found(self, client) -> None:
+    def test_update_form_not_found(self, client: FlaskClient) -> None:
         resp = client.put(
             "/api/form",
             json={"name": "Nonexistent", "short_name": "x", "unit": "x"},
@@ -70,15 +76,19 @@ class TestUpdateForm:
 class TestDeleteForm:
     """DELETE /api/form — Bug 2: dependency protection."""
 
-    def test_delete_form_success(self, client, seed_form) -> None:
+    def test_delete_form_success(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.delete("/api/form", json={"name": "Tablety"})
         assert resp.status_code == 200
 
-    def test_delete_form_not_found(self, client) -> None:
+    def test_delete_form_not_found(self, client: FlaskClient) -> None:
         resp = client.delete("/api/form", json={"name": "Ghost"})
         assert resp.status_code == 404
 
-    def test_delete_form_blocked_when_labels_exist(self, client, seed_label) -> None:
+    def test_delete_form_blocked_when_labels_exist(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         """Bug 2: Cannot delete a form that is used by labels."""
         resp = client.delete("/api/form", json={"name": "Tablety"})
         assert resp.status_code == 409
@@ -86,7 +96,9 @@ class TestDeleteForm:
         assert "Nelze smazat" in error
         assert "1" in error  # at least 1 label
 
-    def test_delete_form_allowed_after_label_removed(self, client, seed_label) -> None:
+    def test_delete_form_allowed_after_label_removed(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         """After removing the label, form deletion should succeed."""
         label_id = seed_label["id"]
         del_label_resp = client.delete(f"/labels/api/label/{label_id}")
@@ -99,17 +111,21 @@ class TestDeleteForm:
 class TestGetForms:
     """GET /api/form."""
 
-    def test_get_forms_empty(self, client) -> None:
+    def test_get_forms_empty(self, client: FlaskClient) -> None:
         resp = client.get("/api/form")
         assert resp.status_code == 200
         assert resp.get_json()["forms"] == []
 
-    def test_get_forms_with_data(self, client, seed_form) -> None:
+    def test_get_forms_with_data(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.get("/api/form")
         assert resp.status_code == 200
         assert len(resp.get_json()["forms"]) == 1
 
-    def test_get_forms_sorted_by_short(self, client, seed_form) -> None:
+    def test_get_forms_sorted_by_short(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         client.post(
             "/api/form",
             json={"name": "Ampule", "short_name": "amp", "unit": "ml"},

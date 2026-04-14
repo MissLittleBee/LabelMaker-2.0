@@ -1,6 +1,7 @@
 """Tests for app/utils.py — translate_db_error, calculate_unit_price, font settings."""
 
 import json
+from pathlib import Path
 from unittest.mock import patch
 
 from app.constants import PRICE_FONT_SIZE_MAX, TEXT_FONT_SIZE_MIN
@@ -70,21 +71,21 @@ class TestCalculateUnitPrice:
 class TestSaveFontSettings:
     """Bug 7: Font size bounds are enforced on save."""
 
-    def test_clamps_too_large_price_font(self, tmp_path) -> None:
+    def test_clamps_too_large_price_font(self, tmp_path: Path) -> None:
         path = tmp_path / "settings.json"
         with patch("app.utils.FONT_SETTINGS_PATH", path):
             save_font_settings(999, 14)
         data = json.loads(path.read_text())
         assert data["price_font_size"] == PRICE_FONT_SIZE_MAX
 
-    def test_clamps_too_small_text_font(self, tmp_path) -> None:
+    def test_clamps_too_small_text_font(self, tmp_path: Path) -> None:
         path = tmp_path / "settings.json"
         with patch("app.utils.FONT_SETTINGS_PATH", path):
             save_font_settings(20, 1)
         data = json.loads(path.read_text())
         assert data["text_font_size"] == TEXT_FONT_SIZE_MIN
 
-    def test_valid_values_unchanged(self, tmp_path) -> None:
+    def test_valid_values_unchanged(self, tmp_path: Path) -> None:
         path = tmp_path / "settings.json"
         with patch("app.utils.FONT_SETTINGS_PATH", path):
             save_font_settings(30, 16)

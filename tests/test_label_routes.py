@@ -1,12 +1,19 @@
 """Tests for label routes — CRUD + form validation + error translation + font bounds (Bugs 3, 6, 7)."""
 
+from unittest.mock import patch
+
 import pytest
+from flask.testing import FlaskClient
+
+from app.models import FormDict, LabelDict
 
 
 class TestCreateLabel:
     """POST /labels/api/label."""
 
-    def test_create_label_success(self, client, seed_form) -> None:
+    def test_create_label_success(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.post(
             "/labels/api/label",
             json={
@@ -21,7 +28,9 @@ class TestCreateLabel:
         assert label["product_name"] == "Ibuprofen 400mg"
         assert label["unit_price"] == pytest.approx(2.17, abs=0.01)
 
-    def test_create_label_missing_fields(self, client, seed_form) -> None:
+    def test_create_label_missing_fields(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.post(
             "/labels/api/label",
             json={"product_name": "X"},
@@ -29,7 +38,9 @@ class TestCreateLabel:
         assert resp.status_code == 400
         assert "form" in resp.get_json()["error"]
 
-    def test_create_label_invalid_amount(self, client, seed_form) -> None:
+    def test_create_label_invalid_amount(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.post(
             "/labels/api/label",
             json={
@@ -41,7 +52,9 @@ class TestCreateLabel:
         )
         assert resp.status_code == 400
 
-    def test_create_label_nonexistent_form(self, client, seed_form) -> None:
+    def test_create_label_nonexistent_form(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         """Bug 6: Creating a label with a non-existent form returns 400."""
         resp = client.post(
             "/labels/api/label",
@@ -56,7 +69,7 @@ class TestCreateLabel:
         assert "neexistuje" in resp.get_json()["error"]
 
     def test_create_duplicate_label_returns_friendly_error(
-        self, client, seed_label
+        self, client: FlaskClient, seed_label: LabelDict
     ) -> None:
         """Bug 3: Duplicate label returns Czech message, not raw SQL."""
         resp = client.post(
@@ -77,23 +90,29 @@ class TestCreateLabel:
 class TestUpdateLabel:
     """PUT /labels/api/label/<id>."""
 
-    def test_update_label_success(self, client, seed_label) -> None:
+    def test_update_label_success(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         label_id = seed_label["id"]
         resp = client.put(
             f"/labels/api/label/{label_id}",
             json={"price": 100.0},
         )
         assert resp.status_code == 200
-        assert resp.get_json()["label"]["price"] == 100.0
+        assert resp.get_json()["label"]["price"] == pytest.approx(100.0)
 
-    def test_update_label_not_found(self, client, seed_form) -> None:
+    def test_update_label_not_found(
+        self, client: FlaskClient, seed_form: FormDict
+    ) -> None:
         resp = client.put(
             "/labels/api/label/99999",
             json={"price": 10},
         )
         assert resp.status_code == 404
 
-    def test_update_label_nonexistent_form(self, client, seed_label) -> None:
+    def test_update_label_nonexistent_form(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         """Bug 6: Updating label to a non-existent form returns 400."""
         label_id = seed_label["id"]
         resp = client.put(
@@ -107,12 +126,14 @@ class TestUpdateLabel:
 class TestDeleteLabel:
     """DELETE /labels/api/label/<id>."""
 
-    def test_delete_label_success(self, client, seed_label) -> None:
+    def test_delete_label_success(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         label_id = seed_label["id"]
         resp = client.delete(f"/labels/api/label/{label_id}")
         assert resp.status_code == 200
 
-    def test_delete_label_not_found(self, client) -> None:
+    def test_delete_label_not_found(self, client: FlaskClient) -> None:
         resp = client.delete("/labels/api/label/99999")
         assert resp.status_code == 404
 
@@ -120,7 +141,9 @@ class TestDeleteLabel:
 class TestTogglePrintMark:
     """POST /labels/api/label/<id>/toggle-print."""
 
-    def test_toggle_print_mark(self, client, seed_label) -> None:
+    def test_toggle_print_mark(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         label_id = seed_label["id"]
         resp = client.post(f"/labels/api/label/{label_id}/toggle-print")
         assert resp.status_code == 200
@@ -133,12 +156,14 @@ class TestTogglePrintMark:
 class TestGetLabels:
     """GET /labels/api/labels."""
 
-    def test_get_labels_empty(self, client) -> None:
+    def test_get_labels_empty(self, client: FlaskClient) -> None:
         resp = client.get("/labels/api/labels")
         assert resp.status_code == 200
         assert resp.get_json()["count"] == 0
 
-    def test_get_labels_with_data(self, client, seed_label) -> None:
+    def test_get_labels_with_data(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
         resp = client.get("/labels/api/labels")
         assert resp.status_code == 200
         assert resp.get_json()["count"] == 1
@@ -147,14 +172,14 @@ class TestGetLabels:
 class TestFontSettings:
     """POST /labels/api/pdf-font-settings — Bug 7: bounded validation."""
 
-    def test_valid_font_settings(self, client) -> None:
+    def test_valid_font_settings(self, client: FlaskClient) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
             json={"price_font_size": 32, "text_font_size": 11},
         )
         assert resp.status_code == 200
 
-    def test_price_font_too_large(self, client) -> None:
+    def test_price_font_too_large(self, client: FlaskClient) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
             json={"price_font_size": 100, "text_font_size": 14},
@@ -162,23 +187,51 @@ class TestFontSettings:
         assert resp.status_code == 400
         assert "musí být" in resp.get_json()["error"]
 
-    def test_price_font_too_small(self, client) -> None:
+    def test_price_font_too_small(self, client: FlaskClient) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
             json={"price_font_size": 5, "text_font_size": 14},
         )
         assert resp.status_code == 400
 
-    def test_text_font_too_large(self, client) -> None:
+    def test_text_font_too_large(self, client: FlaskClient) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
             json={"price_font_size": 30, "text_font_size": 50},
         )
         assert resp.status_code == 400
 
-    def test_text_font_too_small(self, client) -> None:
+    def test_text_font_too_small(self, client: FlaskClient) -> None:
         resp = client.post(
             "/labels/api/pdf-font-settings",
             json={"price_font_size": 30, "text_font_size": 2},
         )
         assert resp.status_code == 400
+
+
+class TestPrintPageAndPdfPersistence:
+    """Regression tests for print price currency and persistent font settings."""
+
+    def test_print_page_total_price_shows_currency(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
+        label_id = seed_label["id"]
+        client.post(f"/labels/api/label/{label_id}/toggle-print")
+
+        resp = client.get("/labels/print")
+        assert resp.status_code == 200
+        assert b"89,50 K\xc4\x8d" in resp.data
+
+    def test_generate_pdf_all_marked_persists_query_font_settings(
+        self, client: FlaskClient, seed_label: LabelDict
+    ) -> None:
+        label_id = seed_label["id"]
+        client.post(f"/labels/api/label/{label_id}/toggle-print")
+
+        with patch("app.routes.labels.label_routes.save_font_settings") as save_mock:
+            resp = client.get(
+                "/labels/api/labels/pdf?price_font_size=35&text_font_size=13"
+            )
+
+        assert resp.status_code == 200
+        save_mock.assert_called_once_with(35, 13)
