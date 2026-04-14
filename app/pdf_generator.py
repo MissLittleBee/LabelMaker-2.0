@@ -66,7 +66,7 @@ try:
 
     FONT_REGULAR = "DejaVuSans"
     FONT_BOLD = "DejaVuSans-Bold"
-    logger.info(f"✓ Fonts registered from: {regular_path}")
+    logger.info(f"Fonts registered from: {regular_path}")
 except Exception as e:
     logger.warning(f"Could not register fonts: {e}. Fallback to Helvetica.")
     FONT_REGULAR = "Helvetica"

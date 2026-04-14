@@ -43,7 +43,7 @@ def setup_app() -> Flask:
 
     with app.app_context():
         db.create_all()
-        logger.info("✓ Database ready at: %s", db_path)
+        logger.info("Database ready at: %s", db_path)
 
     return app
 

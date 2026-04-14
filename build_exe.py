@@ -21,7 +21,7 @@ build_args = [
     "--name=LabelMaker",  # Name of the executable
     "--onefile",  # Create ONE single executable file (everything embedded)
     "--windowed",  # No console window (runs silently)
-    # ⭐ EMBED ALL DATA FILES INTO EXE ⭐
+    # EMBED ALL DATA FILES INTO EXE
     # These will be extracted to temp folder at runtime
     f"--add-data={script_dir / 'app'}{sep}app",  # Embed entire app/ folder
     f"--add-data={script_dir / 'templates'}{sep}templates",  # Embed templates/
@@ -62,13 +62,13 @@ if icon_path.exists():
 PyInstaller.__main__.run(build_args)
 
 print("\n" + "=" * 10)
-print("✅ Build complete!")
-print(f"📦 Single EXE file: {script_dir / 'dist' / 'LabelMaker.exe'}")
-print("\n📝 Distribution:")
+print("Build complete!")
+print(f"Single EXE file: {script_dir / 'dist' / 'LabelMaker.exe'}")
+print("\nDistribution:")
 print("   Just copy LabelMaker.exe - that's it!")
-print("   • All Python code is embedded")
-print("   • All templates are embedded")
-print("   • All static files are embedded")
-print("   • Database will be created automatically in instance/")
-print("\n⚠️  Note: First run may take 5-10 seconds (extracting to temp)")
+print("   - All Python code is embedded")
+print("   - All templates are embedded")
+print("   - All static files are embedded")
+print("   - Database will be created automatically in instance/")
+print("\nNote: First run may take 5-10 seconds (extracting to temp)")
 print("=" * 70)
