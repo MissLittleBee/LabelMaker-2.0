@@ -1,6 +1,6 @@
 """Tests for PDF generator — clipping, auto-scaling, zone layout (Bug 1)."""
 
-from app.pdf_generator import LabelPDFGenerator
+from app.pdf_generator import LabelPDFGenerator, PdfLabelData, _format_czech_price
 
 
 class TestLabelPDFGenerator:
@@ -62,7 +62,7 @@ class TestLabelPDFGenerator:
         c = pdf_canvas.Canvas(buf, pagesize=A4)
         gen = LabelPDFGenerator()
 
-        label_data = {
+        label_data: PdfLabelData = {
             "product_name": "Paralen 500mg",
             "form": "tbl",
             "amount": 24,
@@ -87,7 +87,7 @@ class TestLabelPDFGenerator:
         c = pdf_canvas.Canvas(buf, pagesize=A4)
         gen = LabelPDFGenerator()
 
-        label_data = {
+        label_data: PdfLabelData = {
             "product_name": "Very Long Product Name That Exceeds Twenty Five Characters Easily",
             "form": "cps",
             "amount": 100,
@@ -104,7 +104,7 @@ class TestLabelPDFGenerator:
     def test_generate_pdf_returns_buffer(self) -> None:
         """generate_pdf should return a BytesIO for valid labels."""
         gen = LabelPDFGenerator()
-        labels = [
+        labels: list[PdfLabelData] = [
             {
                 "product_name": "Test",
                 "form": "tbl",
@@ -121,3 +121,8 @@ class TestLabelPDFGenerator:
     def test_generate_pdf_empty_returns_none(self) -> None:
         gen = LabelPDFGenerator()
         assert gen.generate_pdf([]) is None
+
+    def test_format_czech_price_includes_currency(self) -> None:
+        """Regression: middle label price must include Kč suffix."""
+        assert _format_czech_price(99.99) == "99,99 Kč"
+        assert _format_czech_price(100.0) == "100,- Kč"

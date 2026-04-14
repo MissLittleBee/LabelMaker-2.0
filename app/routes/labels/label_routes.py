@@ -455,6 +455,10 @@ def generate_pdf_all_marked() -> ResponseReturnValue:
             TEXT_FONT_SIZE_MAX,
         )
 
+        # Keep the latest validated values persistent so they are reloaded
+        # on the next print page visit.
+        save_font_settings(price_font_size, text_font_size)
+
         label_data: list[PdfLabelData] = []
         for label in marked_labels:
             data = _enrich_label_with_unit(label.to_dict(), label.form)
@@ -498,6 +502,9 @@ def generate_pdf_single(label_id: int) -> ResponseReturnValue:
 
         # Enrich label with form unit information
         data = _enrich_label_with_unit(label.to_dict(), label.form)
+        font_settings = load_font_settings()
+        data["price_font_size"] = font_settings["price_font_size"]
+        data["text_font_size"] = font_settings["text_font_size"]
 
         # Generate PDF
         pdf_buffer = generate_labels_pdf([data])

@@ -39,10 +39,10 @@ def _format_czech_number(value: float, decimals: int = 2) -> str:
 
 
 def _format_czech_price(value: float) -> str:
-    """Format price for Czech labels: '352,-' for whole, '29,90' for decimals."""
+    """Format price for Czech labels with currency suffix."""
     if value == int(value):
-        return f"{int(value)},-"
-    return f"{value:.2f}".replace(".", ",")
+        return f"{int(value)},- Kč"
+    return f"{value:.2f}".replace(".", ",") + " Kč"
 
 
 def get_font_path(font_name: str) -> str:
