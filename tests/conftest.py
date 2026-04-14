@@ -13,9 +13,9 @@ from app.db import db as _db
 from app.models import FormDict, LabelDict
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def app() -> Generator[Flask, None, None]:
-    """Create a Flask application configured for testing with an in-memory SQLite DB."""
+    """Create a Flask application once for the entire test session."""
     application = create_app()
     application.config.update(
         {
@@ -28,8 +28,17 @@ def app() -> Generator[Flask, None, None]:
     with application.app_context():
         _db.create_all()
         yield application
-        _db.session.remove()
         _db.drop_all()
+
+
+@pytest.fixture(autouse=True)
+def _clean_tables(app: Flask) -> Generator[None, None, None]:
+    """Delete all row data after each test while keeping the schema."""
+    yield
+    with app.app_context():
+        for table in reversed(_db.metadata.sorted_tables):
+            _db.session.execute(table.delete())
+        _db.session.commit()
 
 
 @pytest.fixture()
